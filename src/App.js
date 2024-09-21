@@ -93,7 +93,6 @@ const App = () => {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
-      {/*header bar*/}
       {isLandingPage && (
         <div
           style={{
@@ -104,18 +103,17 @@ const App = () => {
             height: "100px",
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
             padding: "0 20px",
             backgroundColor: "transparent",
             zIndex: 30,
           }}
         >
-          {/* Logo */}
           <img
             src={logo}
             alt="Logo"
-            style={{ width: "100px", height: "100px" }}
+            style={{ width: "80px", height: "80px" }}
           />
-          {/* Navigation Buttons */}
           <div style={{ display: "flex", gap: "10px" }}>
             <Link to="/roadmap">
               <button style={buttonStyle}>Roadmap</button>
@@ -130,7 +128,6 @@ const App = () => {
         </div>
       )}
 
-      {/* Render Routes */}
       <Routes>
         <Route
           path="/"
@@ -145,79 +142,14 @@ const App = () => {
                 allowInteraction={inputActive}
               />
 
-              {showTitle && (
-                <h1
-                  style={{
-                    position: "absolute",
-                    top: "5px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    color: "rgba(255, 255, 255, 1)",
-                    fontSize: "72px",
-                    fontWeight: "bold",
-                    fontFamily: "Arial",
-                    textAlign: "center",
-                    zIndex: 10,
-                    userSelect: "none",
-                    pointerEvents: "none",
-                  }}
-                >
-                  STAKE.CITY
-                </h1>
-              )}
+              {showTitle && <h1 style={titleStyle}>STAKE.CITY</h1>}
 
               {showPrompt && (
-                <h1
-                  style={{
-                    position: "absolute",
-                    top: "5px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    color: "rgba(255, 255, 255, 0.7)",
-                    fontSize: "48px",
-                    fontFamily: "Arial",
-                    textAlign: "center",
-                    zIndex: 10,
-                    userSelect: "none",
-                  }}
-                >
-                  WHERE ARE YOU HEADED TO?
-                </h1>
+                <h1 style={promptStyle}>WHERE ARE YOU HEADED TO?</h1>
               )}
 
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "100%",
-                  height: "100%",
-                  zIndex: 10,
-                  color: "rgba(255, 255, 255, 0.7)",
-                  fontSize: "48px",
-                  fontFamily: "Arial",
-                  cursor: "pointer",
-                  userSelect: "none",
-                  pointerEvents: "none",
-                }}
-              >
-                {!inputActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%)",
-                      color: "rgba(255, 255, 255, 0.35)",
-                      fontSize: "48px",
-                      fontFamily: "Arial",
-                      cursor: "pointer",
-                    }}
-                  >
-                    START
-                  </div>
-                )}
+              <div style={inputContainerStyle}>
+                {!inputActive && <div style={startButtonStyle}>START</div>}
                 {inputActive && (
                   <input
                     ref={inputRef}
@@ -225,24 +157,7 @@ const App = () => {
                     value={query}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    style={{
-                      position: "absolute",
-                      top: "85%",
-                      left: "50%",
-                      transform: "translate(-50%)",
-                      background: "transparent",
-                      border: "none",
-                      color: "rgba(255, 255, 255, 0.7)",
-                      fontSize: "48px",
-                      fontFamily: "Arial",
-                      textAlign: "center",
-                      outline: "none",
-                      width: "100%",
-                      caretColor: "rgba(255, 255, 255, 0.7)",
-                      fontWeight: "bold",
-                      padding: "0 5px",
-                      pointerEvents: "all",
-                    }}
+                    style={inputStyle}
                     autoFocus
                     autoComplete="off"
                     autoCorrect="off"
@@ -261,7 +176,6 @@ const App = () => {
   );
 };
 
-// Button style
 const buttonStyle = {
   backgroundColor: "rgba(255, 255, 255, 0.2)",
   color: "white",
@@ -270,6 +184,87 @@ const buttonStyle = {
   padding: "10px 15px",
   cursor: "pointer",
   fontSize: "16px",
+};
+
+const titleStyle = {
+  position: "absolute",
+  top: "120px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  color: "rgba(255, 255, 255, 1)",
+  fontSize: "clamp(36px, 8vw, 72px)",
+  fontWeight: "bold",
+  fontFamily: "Arial",
+  textAlign: "center",
+  zIndex: 10,
+  userSelect: "none",
+  pointerEvents: "none",
+  width: "100%",
+  padding: "0 20px",
+  boxSizing: "border-box",
+};
+
+const promptStyle = {
+  position: "absolute",
+  top: "120px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  color: "rgba(255, 255, 255, 0.7)",
+  fontSize: "clamp(24px, 5vw, 48px)",
+  fontFamily: "Arial",
+  textAlign: "center",
+  zIndex: 10,
+  userSelect: "none",
+  width: "100%",
+  padding: "0 20px",
+  boxSizing: "border-box",
+};
+
+const inputContainerStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "100%",
+  height: "100%",
+  zIndex: 10,
+  color: "rgba(255, 255, 255, 0.7)",
+  fontSize: "clamp(24px, 5vw, 48px)",
+  fontFamily: "Arial",
+  cursor: "pointer",
+  userSelect: "none",
+  pointerEvents: "none",
+};
+
+const startButtonStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%)",
+  color: "rgba(255, 255, 255, 0.35)",
+  fontSize: "clamp(24px, 5vw, 48px)",
+  fontFamily: "Arial",
+  cursor: "pointer",
+};
+
+const inputStyle = {
+  position: "absolute",
+  top: "85%",
+  left: "50%",
+  transform: "translate(-50%)",
+  background: "transparent",
+  border: "none",
+  color: "rgba(255, 255, 255, 0.7)",
+  fontSize: "clamp(24px, 5vw, 48px)",
+  fontFamily: "Arial",
+  textAlign: "center",
+  outline: "none",
+  width: "100%",
+  caretColor: "rgba(255, 255, 255, 0.7)",
+  fontWeight: "bold",
+  padding: "0 20px",
+  boxSizing: "border-box",
+  pointerEvents: "all",
 };
 
 export default App;
