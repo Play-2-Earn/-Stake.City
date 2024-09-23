@@ -16,6 +16,7 @@ const App = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [showTitle, setShowTitle] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mapInteractionEnabled, setMapInteractionEnabled] = useState(true);
   const isFirstKeyPressAfterSearch = useRef(false);
   const inputRef = useRef(null);
   const location = useLocation();
@@ -30,6 +31,7 @@ const App = () => {
       }, 0);
     }
   };
+
   const handleSearch = (location, formattedName) => {
     setCenter(location);
     setSearchPerformed(true);
@@ -90,14 +92,22 @@ const App = () => {
   const isLandingPage = location.pathname === "/";
   const isMobile = window.innerWidth <= 768;
 
+  const handleScroll = (e) => {
+    if (isLandingPage) {
+      const scrollPosition = e.target.scrollTop;
+      setMapInteractionEnabled(scrollPosition < 100);
+    }
+  };
+
   return (
     <div
       style={{
         position: "relative",
         width: "100%",
-        minHeight: "100vh",
+        height: "100vh",
         overflow: "auto",
       }}
+      onScroll={handleScroll}
     >
       {isLandingPage && (
         <div style={headerStyle}>
@@ -168,8 +178,10 @@ const App = () => {
                 <MapboxMap
                   position={center}
                   searchPerformed={searchPerformed}
-                  allowInteraction={inputActive}
+                  allowInteraction={inputActive && mapInteractionEnabled}
                 />
+
+                {showTitle && <h1 style={titleStyle}>STAKE.CITY</h1>}
 
                 {showTitle && <div style={threeDTitleStyle}>STAKE.CITY</div>}
 
