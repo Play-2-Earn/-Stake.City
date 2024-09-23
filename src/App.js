@@ -181,8 +181,6 @@ const App = () => {
                   allowInteraction={inputActive && mapInteractionEnabled}
                 />
 
-                {showTitle && <h1 style={titleStyle}>STAKE.CITY</h1>}
-
                 {showTitle && <div style={threeDTitleStyle}>STAKE.CITY</div>}
 
                 {showPrompt && (
