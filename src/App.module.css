@@ -1,0 +1,126 @@
+.appContainer {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: auto;
+  }
+  
+  .header {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    height: 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background-color: transparent;
+    z-index: 30;
+  }
+  
+  .logo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .mobileMenuButton {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .mobileMenu {
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .mobileLink {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 5px 0;
+  }
+  
+  .landingContainer {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+  }
+  
+  .title {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateZ(-500px) rotateX(30deg);
+    color: rgba(255, 255, 255, 0.1);
+    font-size: clamp(72px, 16vw, 144px);
+    font-weight: bold;
+    text-align: center;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .prompt {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 2.5vw;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  .inputContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .inputContainer.inactive {
+    pointer-events: none;
+  }
+
+  .startButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%);
+    color: rgba(255, 255, 255, 0.35);
+    font-size: clamp(24px, 5vw, 48px);
+    pointer-events: none;
+  }
+  
+  .input {
+    position: absolute;
+    top: 85%;
+    left: 50%;
+    transform: translate(-50%);
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: clamp(24px, 5vw, 48px);
+    text-align: center;
+    outline: none;
+    width: 100%;
+    caret-color: rgba(255, 255, 255, 0.7);
+    font-weight: bold;
+    padding: 0 20px;
+    pointer-events: auto;
+  }
