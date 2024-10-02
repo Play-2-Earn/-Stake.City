@@ -6,7 +6,7 @@ import mainLogo from '/mainLogo.png'
 
 const Footer = () => {
     return (
-        <footer className="mt-4">
+        <footer className="mt-6">
             <div className="flex flex-row flex-wrap align-middle justify-start opacity-30 hover:opacity-60 transition-opacity delay-100 cursor-pointer">
                 <img src={mainLogo} alt="Stake_city" className=" h-24 " />
                 <p className="my-auto text-5xl">Stake.city</p>

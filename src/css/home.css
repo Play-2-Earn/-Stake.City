@@ -1,0 +1,23 @@
+body {
+    background-image: url('/Home_bg.png');
+    background-color: rgba(0, 0, 0, 0.6);
+    background-blend-mode: darken;
+    background-repeat: no-repeat;
+}
+
+.glob_text{
+    position: absolute;
+    top: 83%;
+    left: 37%;
+    color: #ffffff;
+}
+
+.glob_start_btn{
+    position: absolute;
+    top: 92%;
+    left: 42%;
+    width: 19vw;
+    height: 3em;
+    background-color: transparent;
+}
+
