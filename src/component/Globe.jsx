@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { getFresnelMat } from '../helpers/getFresnelMat'; // Assuming this file is still located here
-import '../css/globe.css'
+import '../css/globe.css';
 
 const Globe = () => {
   const globeRef = useRef();
   const prevScrollY = useRef(0); // To track the previous scroll position
   const scrollSpeedFactor = 0.0005; // Adjust the speed of the globe's rotation
+  let frameId; // For canceling the animation frame
 
   useEffect(() => {
     // Get the container for the globe
@@ -32,10 +33,10 @@ const Globe = () => {
     earthGroup.rotation.z = -23.4 * Math.PI / 180;
     scene.add(earthGroup);
 
-    const detail = 12;
+    const detail = 6; // Reduced detail level for performance
     const loader = new THREE.TextureLoader();
     const geo = new THREE.IcosahedronGeometry(1.0, detail);
-    
+
     // Earth material
     const mat = new THREE.MeshStandardMaterial({
       map: loader.load("/assets/8k_earth_daymap.jpg"),
@@ -75,13 +76,34 @@ const Globe = () => {
     sunLight.position.set(-2, 0.5, 1.5);
     scene.add(sunLight);
 
+    // Throttle scroll handling
+    let scrollTimeout;
+    const handleScroll = () => {
+      if (scrollTimeout) return;
+
+      scrollTimeout = setTimeout(() => {
+        const currentScrollY = window.scrollY;
+
+        // Determine scroll direction and apply rotation accordingly
+        const scrollDelta = currentScrollY - prevScrollY.current;
+        earthMesh.rotation.y += scrollDelta * scrollSpeedFactor;
+        lightsMesh.rotation.y += scrollDelta * scrollSpeedFactor;
+        cloudsMesh.rotation.y += scrollDelta * scrollSpeedFactor;
+
+        // Update the previous scroll position
+        prevScrollY.current = currentScrollY;
+
+        scrollTimeout = null;
+      }, 100); // Throttle scroll event by 100ms
+    };
+
     // Animation loop
     const animate = () => {
-      requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
 
       earthMesh.rotation.y += 0.0001;
       lightsMesh.rotation.y += 0.0001;
-      cloudsMesh.rotation.y += 0.0002;
+      cloudsMesh.rotation.y += 0.00015; // Reduce cloud rotation slightly for better performance
       glowMesh.rotation.y += 0.0001;
 
       renderer.render(scene, camera);
@@ -97,27 +119,13 @@ const Globe = () => {
       camera.updateProjectionMatrix();
     };
     window.addEventListener('resize', handleResize);
-
-    // Handle scroll
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Determine scroll direction and apply rotation accordingly
-      const scrollDelta = currentScrollY - prevScrollY.current;
-      earthMesh.rotation.y += scrollDelta * scrollSpeedFactor;
-      lightsMesh.rotation.y += scrollDelta * scrollSpeedFactor;
-      cloudsMesh.rotation.y += scrollDelta * scrollSpeedFactor;
-
-      // Update the previous scroll position
-      prevScrollY.current = currentScrollY;
-    };
-
     window.addEventListener('scroll', handleScroll);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
-      container.removeChild(renderer.domElement); // Clean up on unmount
+      cancelAnimationFrame(frameId); // Stop animation on unmount
+      container.removeChild(renderer.domElement); // Clean up renderer
     };
   }, []);
 

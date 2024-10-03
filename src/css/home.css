@@ -3,16 +3,18 @@ body {
     background-color: rgba(0, 0, 0, 0.6);
     background-blend-mode: darken;
     background-repeat: no-repeat;
+    background-attachment: fixed;
+    scroll-behavior: smooth;
 }
 
-.glob_text{
+.glob_text {
     position: absolute;
     top: 83%;
     left: 37%;
     color: #ffffff;
 }
 
-.glob_start_btn{
+.glob_start_btn {
     position: absolute;
     top: 92%;
     left: 42%;
@@ -21,3 +23,65 @@ body {
     background-color: transparent;
 }
 
+.second_ele {
+    background-image: url('/second_element.png');
+    background-size: 110%;
+    background-position: 52% 40%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    height: 34em;
+}
+
+.custom-paragraph {
+    text-align: right;
+    max-width: 400px;
+    word-wrap: break-word;
+    margin-left: auto;
+}
+
+.third_element {
+    background-image: url('/third_element.png');
+    background-size: 110%;
+    background-position: 52% 40%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    height: 30em;
+}
+
+.earn {
+    color: rgb(212, 188, 49);
+}
+
+.custom-paragraph_sec {
+    text-align: right;
+    max-width: 750px;
+    word-wrap: break-word;
+    margin-left: auto;
+}
+
+/* .chain_1 {
+    position: relative;
+    width: 100vw; 
+    overflow: hidden;
+    margin: auto auto;
+}
+
+.chain1_img{
+    position: absolute;
+    top: 0;
+    left: 5%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: auto;
+    transition: transform 0.1s ease-out;
+} */
+
+
+.last_element {
+    background-image: url('./last_ele.png');
+    height: 500px;
+    background-size: 50%;
+    background-position: 50% 19%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
