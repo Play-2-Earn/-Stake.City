@@ -1,5 +1,6 @@
 import React from "react";
 import '../css/home.css'
+import { Link } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
 import Globe from "./globe";
@@ -14,7 +15,7 @@ const Home = () => {
                 <Globe />
                 <div className="">
                     <h1 className="glob_text drop-shadow-xl">Are you ready to explore?</h1>
-                    <button className=" glob_start_btn rounded-3xl px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Start Game</button>
+                    <Link to="/explore" className=" glob_start_btn rounded-3xl px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Start Game </Link>
                 </div>
             </div>
             <div className="second_ele bg-transparent">
@@ -50,7 +51,7 @@ const Home = () => {
                     <h1 className="text-6xl text-center">Connect To Keep <br /> Building With Us.</h1>
                     <p className="text-center mt-8">Enter your email to subscribe to our newsletter and receive updates directly from us</p>
                     <input type="text" placeholder="Email address" className="mt-10 h-10 w-80 mx-auto px-3 rounded-xl" />
-                    <button className=" w-40 mx-auto rounded-3xl mt-9 px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Submit</button>
+                    <Link to="/explore" className=" w-40 mx-auto rounded-3xl mt-9 px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Submit</Link>
 
                 </div>
             </div>

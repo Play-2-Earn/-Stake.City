@@ -5,3 +5,8 @@ body{
   /* cursor: url("../public/cursor.png");  */
 }
 
+.mapContainer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
