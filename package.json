@@ -10,13 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/themes": "^3.1.4",
+    "@react-three/fiber": "^8.17.9",
     "@splinetool/react-spline": "^4.0.0",
+    "class-variance-authority": "^0.7.0",
     "dotenv": "^16.4.5",
+    "framer-motion": "^11.11.1",
+    "lucide-react": "^0.447.0",
     "mapbox-gl": "^3.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "spline": "^0.0.0",
     "tailwind": "^4.0.0",
+    "tailwind-merge": "^2.5.3",
     "three": "^0.169.0"
   },
   "devDependencies": {

@@ -3,9 +3,7 @@ import '../css/home.css'
 import { Link } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
-import Globe from "./globe";
-import chain_1 from '/chain_1.png?url'
-import chain_2 from '/chain_2.png?url'
+import Globe from "./Globe";
 
 const Home = () => {
     return (
