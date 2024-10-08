@@ -20,8 +20,8 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                     className="w-full max-w-sm bg-gray-900 rounded-3xl shadow-[0_0_30px_rgba(0,255,255,0.3)] overflow-hidden relative"
                     style={{
                         boxShadow:
-                            "0 10px 0 #00FFFF, 0 20px 0 #0077BE, 0 0 20px rgba(0,255,255,0.5)",
-                        border: "4px solid #1E90FF",
+                            "0 10px 0 #94a3b8, 0 20px 0 #20C997, 0 0 20px rgba(0,255,255,0.5)",
+                        border: "2px solid #20C997",
                     }}
                     initial={{ scale: 0.8, y: 50, rotateX: 20 }}
                     animate={{ scale: 1, y: 0, rotateX: 0 }}
@@ -29,7 +29,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                     transition={{ type: "spring", damping: 15, stiffness: 100 }}
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 relative">
+                    <div className="bg-gradient-to-r from-slate-900 to-teal-400 text-white p-4 relative">
                         <div
                             className="absolute top-0 left-0 w-full h-full opacity-20"
                             style={{
@@ -55,7 +55,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 relative">
+                    <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
 
 
                         <InputField
@@ -65,10 +65,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                             type="email"
                             placeholder="chris@cosmos.com"
                         />
-                        <Button
-                            className="w-full mt-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon"
-                            onClick={"#"}
-                        >
+                        <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
                             Retrieve Code
                         </Button>
                     </div>
@@ -81,7 +78,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
 
 const InputField = ({ id, label, icon, ...props }) => (
     <div className="space-y-1">
-        <Label htmlFor={id} className="text-cyan-300 text-sm">
+        <Label htmlFor={id} className="text-slate-100 text-sm">
             {label}
         </Label>
         <div className="relative">
@@ -90,7 +87,7 @@ const InputField = ({ id, label, icon, ...props }) => (
                 className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-cyan-500 focus:border-cyan-500 rounded-full"
                 {...props}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-500">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-100">
                 {icon}
             </div>
         </div>
