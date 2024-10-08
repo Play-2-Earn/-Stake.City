@@ -1,12 +1,10 @@
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
 import Home from './component/Home'
-import MapBoxMap from './component/MapboxMap'
+import DropTaskPopup from './component/droptask'
+import Explore from './component/Explore'
 function App() {
-
-  const [center, setCenter] = useState(null);
-
+  
   return (
     <BrowserRouter>
       <Routes>
@@ -14,11 +12,7 @@ function App() {
         {/* this is the place where all the routes will be added, kindly take a consideration to comments*/}
         </Route>
         <Route path="/explore" element={
-          <MapBoxMap
-            position={center}
-            searchPerformed={false}
-            showControls={false}
-            />
+          <Explore />
         }>
         </Route>
       </Routes>

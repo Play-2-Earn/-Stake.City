@@ -1,4 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState} from 'react';
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import DropTaskPopup from "./droptask";
+
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../css/mapboxmap.css';
@@ -6,6 +10,48 @@ import '../css/mapboxmap.css';
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const MapboxMap = ({ position, searchPerformed, showControls }) => {
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [activePopup, setActivePopup] = useState(null); // Track the active popup
+  const [dropTaskSuccess, setDropTaskSuccess] = useState(false);
+  const [taskCoordinates, setTaskCoordinates] = useState(null);  // Store the coordinates for the task drop
+
+  const sampleTask = {
+      title: "Magical Park Cleanup Quest",
+      description:
+        "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
+      location: "Central Park, New York",
+      stakeAmount: 1000,
+    };
+    const sampleUser = {
+      name: "Eco Warrior Alice",
+      id: "hero123",
+      level: 42,
+      avatar: "/api/placeholder/100/100",
+    };
+
+    const handleDropQuestClick = (coordinates) => {
+      setIsPopupOpen(true);
+      setActivePopup("DropTaskPopup"); // Set the active popup to GamifiedTaskPopup
+      setTaskCoordinates(coordinates);  // Store the coordinates where the popup was triggered
+    };
+
+    const handleDropTaskSuccess = (wasSuccessful) => {
+      setDropTaskSuccess(wasSuccessful); // Store the success status
+      setIsPopupOpen(false); // Close the popup
+
+      if (wasSuccessful && taskCoordinates && mapRef.current) {
+        // Create a new marker at the stored coordinates
+        new mapboxgl.Marker()
+          .setLngLat(taskCoordinates)
+          .addTo(mapRef.current);
+    
+        // Optionally reset the coordinates
+        setTaskCoordinates(null);
+      }
+    };
+
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const navigationControlRef = useRef(null);
@@ -70,25 +116,9 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
         mouseHoldTimeout = setTimeout(() => {
           if (isMouseHeld) {
             // Get coordinates where mouse is held
-            coordinates = e.lngLat
-
+            const coordinates = e.lngLat
             // popup feature of mapbox.gl can be later removed and instead have a custom popup component implemented
-
-            // Add a popup asking "Do you want to create a task?"
-            const popup = new mapboxgl.Popup({ closeOnClick: true, closeButton: true })
-              .setLngLat(coordinates)
-              .setHTML('<h3 className="text-black">Do you want to create a task?</h3><button id="create-task-btn">Create Task</button>')
-              .addTo(map);
-
-              document.getElementById('create-task-btn').addEventListener('click', () => {
-                alert('Task created at: ' + coordinates);
-                // Add a marker (pin) at the clicked location
-                const marker = new mapboxgl.Marker()
-                .setLngLat(coordinates)
-                .addTo(map);
-                popup.remove();
-                // Implement additional task creation logic here
-              });
+            handleDropQuestClick(coordinates);
           }
         }, 1000); // 500ms to trigger the pin creation (adjust as needed)
       });
@@ -158,12 +188,19 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
   }, []);
 
   return (
-    <div 
+    <div>
+        <DropTaskPopup
+        isOpen={isPopupOpen && activePopup === "DropTaskPopup"} // Conditional rendering based on activePopup
+        onClose={() => setIsPopupOpen(false)}
+        onSuccess={handleDropTaskSuccess}
+        /> 
+      <div 
       id="map-container"
       ref={mapContainer} 
       style={{ width: '100%', height: '100vh', outline: 'none' }} // Remove outline
       tabIndex="0" // Make the div focusable for keyboard controls
-    />
+      />
+    </div>
   );
 };
 
