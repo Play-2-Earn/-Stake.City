@@ -5,7 +5,7 @@ import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
 
-const signUpPopUp = ({ isOpen, onClose, signUpPopUpOpen}) => {
+const ForgetPasswordPopup = ({ isOpen, onClose, signUpPopUpOpen}) => {
     const [isSignUp, setIsSignUp] = useState(true);
     const [isForgetPassword, setIsForgetPassword] = useState(false);
     const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -211,4 +211,4 @@ const InputField = ({ id, label, icon, ...props }) => (
     </div>
 );
 
-export default signUpPopUp;
+export default ForgetPasswordPopup;

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import React, {useState} from "react";
+import React, { useState } from "react";
 import mainlogo from '/mainLogo.png'
 import '../css/header.css'
-import GamifiedAuthPopup from "./popups/signUpPopUp";
-
+import SignUpPopUp from "./popups/signUpPopUp";
+import LogInPopUp from "./popups/logInPopUp";
+import ForgetPasswordPopup from "./popups/forgetPasswordPopup";
 const Header = () => {
     const [signUpPopUp, setsSignUpPopUp] = useState(false);
     const [logInPopUp, setlogInPopUp] = useState(false);
@@ -17,7 +18,7 @@ const Header = () => {
         // console.log("reached")
     }
 
-    const logInPopUpOpen = () =>{
+    const logInPopUpOpen = () => {
         setlogInPopUp(true)
     }
 
@@ -44,7 +45,9 @@ const Header = () => {
                 </ul>
             </nav>
 
-            <GamifiedAuthPopup signUpPopUpOpen={signUpPopUpOpen} onClose={onClose} isOpen={signUpPopUp} logInPopUpOpen={logInPopUpOpen}/>
+            <SignUpPopUp signUpPopUpOpen={signUpPopUpOpen} onClose={onClose} isOpen={signUpPopUp} logInPopUpOpen={logInPopUpOpen} />
+
+            <LogInPopUp logInPopUpOpen={logInPopUpOpen}  isOpen={logInPopUp} onClose={onClose}/>
         </>
     )
 }
