@@ -19,7 +19,7 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
     if (mapContainer.current) {
       const map = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/robinrai1349/cm1apho4200fz01pc323f11og',
+        style: 'mapbox://styles/play2earn/cm1tnmt6z008e01p964gt2fk9',
         projection: 'globe',
         zoom: searchPerformed ? 7 : 1,
         center: position || [0, 0],

@@ -5,25 +5,7 @@ import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
 
-const ForgetPasswordPopup = ({ isOpen, onClose, signUpPopUpOpen}) => {
-    const [isSignUp, setIsSignUp] = useState(true);
-    const [isForgetPassword, setIsForgetPassword] = useState(false);
-    const [resetEmailSent, setResetEmailSent] = useState(false);
-
-    const toggleAuthMode = () => {
-        setIsSignUp(!isSignUp);
-        setIsForgetPassword(false);
-        setResetEmailSent(false);
-    };
-
-    const handleForgetPassword = () => {
-        setIsForgetPassword(true);
-    };
-
-    const handleResetPassword = () => {
-        setResetEmailSent(true);
-    };
-
+const ForgetPasswordPopup = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
@@ -60,7 +42,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose, signUpPopUpOpen}) => {
                                 className="text-2xl font-extrabold uppercase tracking-wider"
                                 style={{ textShadow: "2px 2px 0 #0077BE, -2px -2px 0 #FF00FF" }}
                             >
-                                {isSignUp ? "Join the Game" : "Player Login"}
+                                Get a new password
                             </h2>
                             <Button
                                 variant="ghost"
@@ -73,123 +55,27 @@ const ForgetPasswordPopup = ({ isOpen, onClose, signUpPopUpOpen}) => {
                         </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
-                        {isSignUp ? (
-                            // Sign Up Form
-                            <>
-                                <InputField
-                                    id="fullName"
-                                    label="Player Name"
-                                    icon={<User />}
-                                    placeholder="Cosmic Chris"
-                                />
-                                <InputField
-                                    id="username"
-                                    label="Gamer Tag"
-                                    icon={<UserPlus />}
-                                    placeholder="cosmic_chris_42"
-                                />
-                                <InputField
-                                    id="dob"
-                                    label="Spawn Date"
-                                    icon={<Calendar />}
-                                    type="date"
-                                />
-                                <InputField
-                                    id="phone"
-                                    label="Comm Link"
-                                    icon={<Phone />}
-                                    placeholder="+1 (123) 456-7890"
-                                />
-                                <InputField
-                                    id="email"
-                                    label="Subspace Mail"
-                                    icon={<Mail />}
-                                    placeholder="chris@cosmos.com"
-                                    type="email"
-                                />
-                                <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
-                                    Create Avatar
-                                </Button>
-                            </>
-                        ) : (
-                            // Login Form
-                            <>
-                                {!isForgetPassword ? (
-                                    <>
-                                        <InputField
-                                            id="loginUsername"
-                                            label="Gamer Tag or Subspace Mail"
-                                            icon={<User />}
-                                            placeholder="cosmic_chris_42 or chris@cosmos.com"
-                                        />
-                                        <InputField
-                                            id="loginPassword"
-                                            label="Secret Code"
-                                            icon={<Key />}
-                                            type="password"
-                                            placeholder="••••••••"
-                                        />
-                                        <div className="text-right">
-                                            <Button
-                                                variant="link"
-                                                className="text-sm text-cyan-400 hover:text-cyan-300"
-                                                onClick={handleForgetPassword}
-                                            >
-                                                Lost your code?
-                                            </Button>
-                                        </div>
-                                        <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
-                                            Enter the Cosmos
-                                        </Button>
-                                    </>
-                                ) : (
-                                    // Forget Password Form
-                                    <>
-                                        {!resetEmailSent ? (
-                                            <>
-                                                <InputField
-                                                    id="resetEmail"
-                                                    label="Subspace Mail"
-                                                    icon={<Mail />}
-                                                    type="email"
-                                                    placeholder="chris@cosmos.com"
-                                                />
-                                                <Button
-                                                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon"
-                                                    onClick={handleResetPassword}
-                                                >
-                                                    Retrieve Code
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <div className="text-center text-green-400 font-semibold">
-                                                New code sent to your subspace mail!
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </>
-                        )}
+                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 relative">
+
+
+                        <InputField
+                            id="resetEmail"
+                            label="Email ID"
+                            icon={<Mail />}
+                            type="email"
+                            placeholder="chris@cosmos.com"
+                        />
+                        <Button
+                            className="w-full mt-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon"
+                            onClick={"#"}
+                        >
+                            Retrieve Code
+                        </Button>
                     </div>
 
-                    {/* Footer */}
-                    <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center">
-                        <p className="text-sm">
-                            {isSignUp ? "Already an explorer?" : "New to the cosmos?"}
-                            <Button
-                                variant="link"
-                                className="text-yellow-300 hover:text-yellow-400 ml-1"
-                                onClick={toggleAuthMode}
-                            >
-                                {isSignUp ? "Login" : "Sign Up"}
-                            </Button>
-                        </p>
-                    </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                </motion.div >
+            </motion.div >
+        </AnimatePresence >
     );
 };
 

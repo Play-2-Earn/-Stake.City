@@ -8,18 +8,42 @@ import ForgetPasswordPopup from "./popups/forgetPasswordPopup";
 const Header = () => {
     const [signUpPopUp, setsSignUpPopUp] = useState(false);
     const [logInPopUp, setlogInPopUp] = useState(false);
+    const [forgetPass, setforgetPass] = useState(false)
 
     const signUpPopUpOpen = () => {
         setsSignUpPopUp(true)
         // console.log("open")
     }
-    const onClose = () => {
+    const onCloseSignUp = () => {
         setsSignUpPopUp(false)
         // console.log("reached")
     }
 
     const logInPopUpOpen = () => {
         setlogInPopUp(true)
+    }
+
+    const OnCloselogInPopUp = () => {
+        setlogInPopUp(false)
+    }
+
+    const AlreadyUserClick = () => {
+        setlogInPopUp(true)
+        setsSignUpPopUp(false)
+    }
+
+    const NewToGame = () => {
+        setlogInPopUp(false)
+        setsSignUpPopUp(true)
+    }
+
+    const forgetPassOpen = () => {
+        setforgetPass(true)
+        setlogInPopUp(false)
+    }
+
+    const forgetPassClose = () => {
+        setforgetPass(false)
     }
 
     return (
@@ -45,9 +69,10 @@ const Header = () => {
                 </ul>
             </nav>
 
-            <SignUpPopUp signUpPopUpOpen={signUpPopUpOpen} onClose={onClose} isOpen={signUpPopUp} logInPopUpOpen={logInPopUpOpen} />
+            <SignUpPopUp signUpPopUpOpen={signUpPopUpOpen} onClose={onCloseSignUp} isOpen={signUpPopUp} AlreadyUserClick={AlreadyUserClick} />
 
-            <LogInPopUp logInPopUpOpen={logInPopUpOpen}  isOpen={logInPopUp} onClose={onClose}/>
+            <LogInPopUp logInPopUpOpen={logInPopUpOpen} isOpen={logInPopUp} onClose={OnCloselogInPopUp} NewToGame={NewToGame} forgetPassOpen={forgetPassOpen}/>
+            <ForgetPasswordPopup isOpen={forgetPass}  onClose={forgetPassClose} />
         </>
     )
 }
