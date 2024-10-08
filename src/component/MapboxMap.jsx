@@ -14,12 +14,15 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
   const MAX_ZOOM = 20; // Maximum zoom level
   const secondsPerRevolution = 240; // Speed of spinning
   let spinEnabled = true;
+  let mouseHoldTimeout = null;  // Added to track the timeout for mouse hold
+  let isMouseHeld = false;      // Added to track if the mouse is currently being held
+
 
   useEffect(() => {
     if (mapContainer.current) {
       const map = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/robinrai1349/cm1apho4200fz01pc323f11og',
+        style: 'mapbox://styles/play2earn/cm1tnpmnd014d01pi7httawcp',
         projection: 'globe',
         zoom: searchPerformed ? 7 : 1,
         center: position || [0, 0],
@@ -57,6 +60,43 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
         map.scrollZoom.enable(); // Enable zooming after the first rotation
         map.keyboard.enable(); // Enable keyboard controls
         spinEnabled = false; // Stop spinning after rotation
+      });
+
+      // Mouse hold to create a task
+      map.on('mousedown', (e) => {
+        isMouseHeld = true;
+        var coordinates;
+        // Trigger a long press after 500ms
+        mouseHoldTimeout = setTimeout(() => {
+          if (isMouseHeld) {
+            // Get coordinates where mouse is held
+            coordinates = e.lngLat
+
+            // popup feature of mapbox.gl can be later removed and instead have a custom popup component implemented
+
+            // Add a popup asking "Do you want to create a task?"
+            const popup = new mapboxgl.Popup({ closeOnClick: true, closeButton: true })
+              .setLngLat(coordinates)
+              .setHTML('<h3 className="text-black">Do you want to create a task?</h3><button id="create-task-btn">Create Task</button>')
+              .addTo(map);
+
+              document.getElementById('create-task-btn').addEventListener('click', () => {
+                alert('Task created at: ' + coordinates);
+                // Add a marker (pin) at the clicked location
+                const marker = new mapboxgl.Marker()
+                .setLngLat(coordinates)
+                .addTo(map);
+                popup.remove();
+                // Implement additional task creation logic here
+              });
+          }
+        }, 1000); // 500ms to trigger the pin creation (adjust as needed)
+      });
+
+      // Detect when the mouse is released, so it doesn't trigger after a short click
+      map.on('mouseup', () => {
+        clearTimeout(mouseHoldTimeout);
+        isMouseHeld = false;
       });
 
       return () => {
