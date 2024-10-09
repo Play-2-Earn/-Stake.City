@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import DropTaskPopup from "./droptask";
+import GamifiedTaskPopup from "./starttask";
 
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -16,41 +17,81 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
   const [activePopup, setActivePopup] = useState(null); // Track the active popup
   const [dropTaskSuccess, setDropTaskSuccess] = useState(false);
   const [taskCoordinates, setTaskCoordinates] = useState(null);  // Store the coordinates for the task drop
+  const [taskMarkers, setTaskMarkers] = useState([]); // Array to store task markers and data
+  const [selectedTask, setSelectedTask] = useState(null); // Store the selected task data
 
   const sampleTask = {
-      title: "Magical Park Cleanup Quest",
-      description:
-        "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
-      location: "Central Park, New York",
-      stakeAmount: 1000,
-    };
-    const sampleUser = {
-      name: "Eco Warrior Alice",
-      id: "hero123",
-      level: 42,
-      avatar: "/api/placeholder/100/100",
-    };
+    title: "Magical Park Cleanup Quest",
+    description:
+      "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
+    location: "Central Park, New York",
+    stakeAmount: 1000,
+  };
 
-    const handleDropQuestClick = (coordinates) => {
-      setIsPopupOpen(true);
-      setActivePopup("DropTaskPopup"); // Set the active popup to GamifiedTaskPopup
-      setTaskCoordinates(coordinates);  // Store the coordinates where the popup was triggered
-    };
+  const sampleUser = {
+    name: "Eco Warrior Alice",
+    id: "hero123",
+    level: 42,
+    avatar: "/api/placeholder/100/100",
+  };
 
-    const handleDropTaskSuccess = (wasSuccessful) => {
-      setDropTaskSuccess(wasSuccessful); // Store the success status
-      setIsPopupOpen(false); // Close the popup
+  const handleMarkerClick = (task) => {
+    setIsPopupOpen(true);  // Open the StartTask popup
+    setSelectedTask(task);  // Store the clicked task data
+    setActivePopup("GamifiedTaskPopup"); // Set the active popup to GamifiedTaskPopup
+  };
 
-      if (wasSuccessful && taskCoordinates && mapRef.current) {
+  const handleDropQuestClick = (coordinates) => {
+    setIsPopupOpen(true);
+    setActivePopup("DropTaskPopup"); // Set the active popup to GamifiedTaskPopup
+    setTaskCoordinates(coordinates);  // Store the coordinates where the popup was triggered
+  };
+
+  const handleDropTaskSuccess = (wasSuccessful) => {
+    setDropTaskSuccess(wasSuccessful);
+    setIsPopupOpen(false); // Close the popup
+
+    if (wasSuccessful) {
+
+      if (taskCoordinates && mapRef.current) {
         // Create a new marker at the stored coordinates
-        new mapboxgl.Marker()
+        const marker = new mapboxgl.Marker()
           .setLngLat(taskCoordinates)
           .addTo(mapRef.current);
-    
-        // Optionally reset the coordinates
-        setTaskCoordinates(null);
+
+        // Store the marker with task data in the taskMarkers array
+        setTaskMarkers(prevMarkers => [
+          ...prevMarkers,
+          {
+            marker,
+            task: {
+              title: "Magical Park Cleanup Quest", // Example task data (use real data here)
+              description: "Embark on an enchanted journey...",
+              location: "Central Park, New York",
+            }
+          }
+        ]);
+
+        // Add click event to the marker to open the StartTask popup
+        marker.getElement().addEventListener('click', () => {
+          handleMarkerClick({
+            title: "Magical Park Cleanup Quest", // Example task data (use real data)
+            description: "Embark on an enchanted journey...",
+            location: "Central Park, New York",
+          });
+        });
       }
-    };
+
+      setTaskCoordinates(null);
+
+      setTimeout(() => {
+        setIsPopupOpen(false); // Close the popup after feedback
+        setFeedbackMessage(""); // Clear the feedback after popup closes
+      }, 2000);
+    } else {
+      setIsPopupOpen(false);
+    }
+  };
 
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
@@ -93,8 +134,8 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
 
       const spinInterval = setInterval(spinGlobe, 1000);
 
-      map.on('mousedown', () => { 
-        userInteracting = true; 
+      map.on('mousedown', () => {
+        userInteracting = true;
         spinEnabled = false; // Stop spinning on user interaction
       });
       map.on('dragend', () => {
@@ -189,16 +230,23 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
 
   return (
     <div>
-        <DropTaskPopup
+      <GamifiedTaskPopup // StartTask popup component
+        task={sampleTask}
+        user={sampleUser}
+        isStaker={Math.random() > 0.5}
+        isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"} // Conditional rendering based on activePopup
+        onClose={() => setIsPopupOpen(false)} // Close the popup
+      />
+      <DropTaskPopup // DropTask popup component
         isOpen={isPopupOpen && activePopup === "DropTaskPopup"} // Conditional rendering based on activePopup
         onClose={() => setIsPopupOpen(false)}
-        onSuccess={handleDropTaskSuccess}
-        /> 
-      <div 
-      id="map-container"
-      ref={mapContainer} 
-      style={{ width: '100%', height: '100vh', outline: 'none' }} // Remove outline
-      tabIndex="0" // Make the div focusable for keyboard controls
+        onSuccess={handleDropTaskSuccess} // Callback function for task drop success
+      />
+      <div // Map container
+        id="map-container"
+        ref={mapContainer}
+        style={{ width: '100%', height: '100vh', outline: 'none' }} // Remove outline
+        tabIndex="0" // Make the div focusable for keyboard controls
       />
     </div>
   );
