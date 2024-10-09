@@ -5,7 +5,7 @@ import mainLogo from '/mainLogo.png'
 
 const Footer = () => {
     return (
-        <footer className="mt-6">
+        <footer className="mt-6 mb-6">
             <div className="flex flex-row flex-wrap align-middle justify-start opacity-30 hover:opacity-60 transition-opacity delay-100 cursor-pointer">
                 <img src={mainLogo} alt="Stake_city" className=" h-24 " />
                 <p className="my-auto text-5xl">Stake.city</p>
@@ -27,8 +27,7 @@ const Footer = () => {
                     <ul>
                         <li><Link>How it work?</Link></li>
                         <li><Link>Whitepaper</Link></li>
-                        <li><Link>$tokename</Link></li>
-                        <li><Link>team</Link></li>
+                        <li><Link>Tokenaiser</Link></li>
                     </ul>
                 </div>
                 <div>
@@ -37,10 +36,7 @@ const Footer = () => {
                         <li><Link>X/Twitter</Link></li>
                         <li><Link>Discord</Link></li>
                         <li><Link>Telegram</Link></li>
-                        <li><Link>Instagram</Link></li>
                         <li><Link>Facebook</Link></li>
-                        <li><Link>Tik-Tok</Link></li>
-                        <li><Link>Reddit</Link></li>
                     </ul>
                 </div>
                 <div>

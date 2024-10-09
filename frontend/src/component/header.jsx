@@ -21,6 +21,7 @@ const Header = () => {
                 setIsLoggedIn(false);
             }
     }, []);
+    
     const signUpPopUpOpen = () => {
         setsSignUpPopUp(true);
     };
