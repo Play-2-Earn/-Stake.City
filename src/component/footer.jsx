@@ -27,8 +27,7 @@ const Footer = () => {
                     <ul>
                         <li><Link>How it work?</Link></li>
                         <li><Link>Whitepaper</Link></li>
-                        <li><Link>$tokename</Link></li>
-                        <li><Link>team</Link></li>
+                        <li><Link>Tokenaiser</Link></li>
                     </ul>
                 </div>
                 <div>
@@ -37,10 +36,7 @@ const Footer = () => {
                         <li><Link>X/Twitter</Link></li>
                         <li><Link>Discord</Link></li>
                         <li><Link>Telegram</Link></li>
-                        <li><Link>Instagram</Link></li>
                         <li><Link>Facebook</Link></li>
-                        <li><Link>Tik-Tok</Link></li>
-                        <li><Link>Reddit</Link></li>
                     </ul>
                 </div>
                 <div>
