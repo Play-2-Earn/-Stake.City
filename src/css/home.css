@@ -24,9 +24,9 @@ body {
 }
 
 .second_ele {
-    background-image: url('/second_element.png');
-    background-size: 110%;
-    background-position: 52% 40%;
+    background-image: url(/second_ele.png);
+    background-size: 122rem;
+    background-position: 40% 61%;
     background-repeat: no-repeat;
     background-attachment: fixed;
     height: 34em;
