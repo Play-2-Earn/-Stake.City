@@ -5,9 +5,47 @@ import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
 
-const ForgetPasswordPopup = ({ isOpen, onClose }) => {
+const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess}) => {
     if (!isOpen) return null;
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(null);
 
+    const handleLogin = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+    
+        try {
+            const response = await fetch("http://localhost:5000/api/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error:', errorData);
+                
+                throw new Error(errorData.message || "Failed to login");
+            }
+    
+            const data = await response.json();
+            console.log("Login successful:", data);
+    
+            sessionStorage.setItem("jwtToken", data.token);
+            onLoginSuccess();
+            onClose();
+            
+            // window.location.href = "/dashboard";
+        } catch (err) {
+            setLoading(false);
+            alert(err.message);
+            
+        }
+    };
+    
     return (
         <AnimatePresence>
             <motion.div
@@ -20,8 +58,8 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                     className="w-full max-w-sm bg-gray-900 rounded-3xl shadow-[0_0_30px_rgba(0,255,255,0.3)] overflow-hidden relative"
                     style={{
                         boxShadow:
-                            "0 10px 0 #94a3b8, 0 20px 0 #20C997, 0 0 20px rgba(0,255,255,0.5)",
-                        border: "2px solid #20C997",
+                            "0 10px 0 #00FFFF, 0 20px 0 #0077BE, 0 0 20px rgba(0,255,255,0.5)",
+                        border: "4px solid #1E90FF",
                     }}
                     initial={{ scale: 0.8, y: 50, rotateX: 20 }}
                     animate={{ scale: 1, y: 0, rotateX: 0 }}
@@ -29,7 +67,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                     transition={{ type: "spring", damping: 15, stiffness: 100 }}
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-slate-900 to-teal-400 text-white p-4 relative">
+                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 relative">
                         <div
                             className="absolute top-0 left-0 w-full h-full opacity-20"
                             style={{
@@ -42,7 +80,7 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                                 className="text-2xl font-extrabold uppercase tracking-wider"
                                 style={{ textShadow: "2px 2px 0 #0077BE, -2px -2px 0 #FF00FF" }}
                             >
-                                Get a new password
+                                Player Login
                             </h2>
                             <Button
                                 variant="ghost"
@@ -54,31 +92,70 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
                             </Button>
                         </div>
                     </div>
-
+                    
+                    <form onSubmit={handleLogin}>
                     <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
 
 
-                        <InputField
-                            id="resetEmail"
+                    <InputField
+                            id="loginUsername"
                             label="Email ID"
-                            icon={<Mail />}
-                            type="email"
-                            placeholder="chris@cosmos.com"
+                            icon={<User />}
+                            placeholder="cosmic_chris_42 or chris@cosmos.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)} // Inline onChange
                         />
-                        <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
-                            Retrieve Code
-                        </Button>
-                    </div>
+                        <InputField
+                            id="loginPassword"
+                            label="Password"
+                            icon={<Key />}
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)} // Inline onChange
+                        />
 
-                </motion.div >
-            </motion.div >
-        </AnimatePresence >
+                        <div className="text-right">
+                            <Button
+                                variant="link"
+                                className="text-sm text-cyan-400 hover:text-cyan-300"
+                                onClick={forgetPassOpen}
+                            >
+                                Lost your password?
+                            </Button>
+                        </div>
+                        <Button
+                                className={`w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                                type="submit"
+                                disabled={loading}
+                            >
+                                {loading ? "Logging in..." : "Enter to Stake City"}
+                            </Button>
+                    </div>
+                    </form>
+
+                    {/* Footer */}
+                    <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center">
+                        <p className="text-sm">
+                            New to the cosmos
+                            <Button
+                                variant="link"
+                                className="text-yellow-300 hover:text-yellow-400 ml-1"
+                                onClick={NewToGame}
+                            >
+                                Sign Up
+                            </Button>
+                        </p>
+                    </div>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
     );
 };
 
 const InputField = ({ id, label, icon, ...props }) => (
     <div className="space-y-1">
-        <Label htmlFor={id} className="text-slate-100 text-sm">
+        <Label htmlFor={id} className="text-cyan-300 text-sm">
             {label}
         </Label>
         <div className="relative">
@@ -87,11 +164,11 @@ const InputField = ({ id, label, icon, ...props }) => (
                 className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-cyan-500 focus:border-cyan-500 rounded-full"
                 {...props}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-100">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-500">
                 {icon}
             </div>
         </div>
     </div>
 );
 
-export default ForgetPasswordPopup;
+export default LogInPopUp;

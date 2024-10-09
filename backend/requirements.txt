@@ -1,0 +1,9 @@
+Flask
+Flask-Mail
+Flask-CORS
+python-dotenv
+authlib
+PyJWT
+mongoengine
+user_agents
+requests
