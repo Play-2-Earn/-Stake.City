@@ -3,27 +3,28 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import DropTaskPopup from "./droptask";
 import GamifiedTaskPopup from "./starttask";
-
+import SearchBar from "./searchbar";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../css/mapboxmap.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-const MapboxMap = ({ position, searchPerformed, showControls }) => {
-
+const MapboxMap = ({ showControls }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
-  const [activePopup, setActivePopup] = useState(null); // Track the active popup
+  const [activePopup, setActivePopup] = useState(null);
   const [dropTaskSuccess, setDropTaskSuccess] = useState(false);
-  const [taskCoordinates, setTaskCoordinates] = useState(null);  // Store the coordinates for the task drop
-  const [taskMarkers, setTaskMarkers] = useState([]); // Array to store task markers and data
-  const [selectedTask, setSelectedTask] = useState(null); // Store the selected task data
+  const [taskCoordinates, setTaskCoordinates] = useState(null);
+  const [taskMarkers, setTaskMarkers] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [center, setCenter] = useState([0, 0]);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [query, setQuery] = useState("");
 
   const sampleTask = {
     title: "Magical Park Cleanup Quest",
-    description:
-      "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
+    description: "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
     location: "Central Park, New York",
     stakeAmount: 1000,
   };
@@ -35,75 +36,116 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
     avatar: "/api/placeholder/100/100",
   };
 
+  // UI button handling functions
+
+  const handleSearch = async (newQuery) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(newQuery)}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+      const { center, place_name } = data.features[0];
+      setCenter(center);
+      setSearchPerformed(true);
+      setQuery(place_name);
+    } catch (error) {
+      console.error("Error fetching location:", error);
+    }
+  };
+
+  // Popup handling functions
+
   const handleMarkerClick = (task) => {
-    setIsPopupOpen(true);  // Open the StartTask popup
-    setSelectedTask(task);  // Store the clicked task data
-    setActivePopup("GamifiedTaskPopup"); // Set the active popup to GamifiedTaskPopup
+    setSelectedTask(task);
+    setActivePopup("GamifiedTaskPopup");
+    setIsPopupOpen(true);
   };
 
   const handleDropQuestClick = (coordinates) => {
+    setActivePopup("DropTaskPopup");
     setIsPopupOpen(true);
-    setActivePopup("DropTaskPopup"); // Set the active popup to GamifiedTaskPopup
-    setTaskCoordinates(coordinates);  // Store the coordinates where the popup was triggered
+    setTaskCoordinates(coordinates);
   };
+
+  useEffect(() => {
+    console.log("Popup state changed:", isPopupOpen);
+  }, [isPopupOpen]);
+
+  useEffect(() => {
+      if (activePopup === "GamifiedTaskPopup") {
+          console.log("GamifiedTaskPopup opened with task:", selectedTask);
+      }
+      if (activePopup === "DropTaskPopup") {
+        console.log("DropTaskPopup opened");
+    }
+  }, [activePopup, selectedTask]);
 
   const handleDropTaskSuccess = (wasSuccessful) => {
     setDropTaskSuccess(wasSuccessful);
-    setIsPopupOpen(false); // Close the popup
+    setIsPopupOpen(false);
 
     if (wasSuccessful) {
-
       if (taskCoordinates && mapRef.current) {
-        // Create a new marker at the stored coordinates
-        const marker = new mapboxgl.Marker()
-          .setLngLat(taskCoordinates)
-          .addTo(mapRef.current);
+        const marker = createMarker(taskCoordinates); // Create the marker
 
-        // Store the marker with task data in the taskMarkers array
         setTaskMarkers(prevMarkers => [
           ...prevMarkers,
           {
             marker,
             task: {
-              title: "Magical Park Cleanup Quest", // Example task data (use real data here)
+              title: "Magical Park Cleanup Quest",
               description: "Embark on an enchanted journey...",
               location: "Central Park, New York",
             }
           }
         ]);
 
-        // Add click event to the marker to open the StartTask popup
-        marker.getElement().addEventListener('click', () => {
-          handleMarkerClick({
-            title: "Magical Park Cleanup Quest", // Example task data (use real data)
-            description: "Embark on an enchanted journey...",
-            location: "Central Park, New York",
-          });
-        });
+        setTaskCoordinates(null);
       }
-
-      setTaskCoordinates(null);
-
-      setTimeout(() => {
-        setIsPopupOpen(false); // Close the popup after feedback
-        setFeedbackMessage(""); // Clear the feedback after popup closes
-      }, 2000);
     } else {
       setIsPopupOpen(false);
     }
+  };
+
+  const createMarker = (coordinates) => {
+    const marker = new mapboxgl.Marker()
+      .setLngLat(coordinates)
+      .addTo(mapRef.current);
+
+    // Disable map interaction when hovering over the marker
+    marker.getElement().addEventListener('mouseenter', () => {
+      mapRef.current.scrollZoom.disable();
+      mapRef.current.dragPan.disable();
+    });
+
+    // Re-enable map interaction when not hovering
+    marker.getElement().addEventListener('mouseleave', () => {
+      mapRef.current.scrollZoom.enable();
+      mapRef.current.dragPan.enable();
+    });
+
+    // Handle marker click to show the task popup
+    marker.getElement().addEventListener('click', () => {
+      handleMarkerClick({
+        title: "Magical Park Cleanup Quest",
+        description: "Embark on an enchanted journey...",
+        location: "Central Park, New York",
+      });
+    });
+
+    return marker;
   };
 
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const navigationControlRef = useRef(null);
 
-  const MIN_ZOOM = 1; // Minimum zoom level
-  const MAX_ZOOM = 20; // Maximum zoom level
-  const secondsPerRevolution = 240; // Speed of spinning
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 20;
+  const secondsPerRevolution = 240;
   let spinEnabled = true;
-  let mouseHoldTimeout = null;  // Added to track the timeout for mouse hold
-  let isMouseHeld = false;      // Added to track if the mouse is currently being held
-
+  let mouseHoldTimeout = null;
+  let isMouseHeld = false;
 
   useEffect(() => {
     if (mapContainer.current) {
@@ -111,12 +153,12 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
         container: mapContainer.current,
         style: 'mapbox://styles/play2earn/cm1tnpmnd014d01pi7httawcp',
         projection: 'globe',
-        zoom: searchPerformed ? 7 : 1,
-        center: position || [0, 0],
+        zoom: 1,
+        center: [0, 0],
         minZoom: MIN_ZOOM,
         maxZoom: MAX_ZOOM,
-        scrollZoom: false, // Disable scroll zoom initially
-        keyboard: false, // Disable keyboard controls initially
+        scrollZoom: false,
+        keyboard: false,
       });
 
       mapRef.current = map;
@@ -136,35 +178,30 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
 
       map.on('mousedown', () => {
         userInteracting = true;
-        spinEnabled = false; // Stop spinning on user interaction
+        spinEnabled = false;
       });
+
       map.on('dragend', () => {
         userInteracting = false;
-        map.scrollZoom.enable(); // Enable scroll zoom after user drags
+        map.scrollZoom.enable();
       });
 
       map.on('rotate', () => {
-        map.scrollZoom.enable(); // Enable zooming after the first rotation
-        map.keyboard.enable(); // Enable keyboard controls
-        spinEnabled = false; // Stop spinning after rotation
+        map.scrollZoom.enable();
+        map.keyboard.enable();
+        spinEnabled = false;
       });
 
       // Mouse hold to create a task
       map.on('mousedown', (e) => {
         isMouseHeld = true;
-        var coordinates;
-        // Trigger a long press after 500ms
         mouseHoldTimeout = setTimeout(() => {
           if (isMouseHeld) {
-            // Get coordinates where mouse is held
-            const coordinates = e.lngLat
-            // popup feature of mapbox.gl can be later removed and instead have a custom popup component implemented
-            handleDropQuestClick(coordinates);
+            handleDropQuestClick(e.lngLat);
           }
-        }, 1000); // 500ms to trigger the pin creation (adjust as needed)
+        }, 1000);
       });
 
-      // Detect when the mouse is released, so it doesn't trigger after a short click
       map.on('mouseup', () => {
         clearTimeout(mouseHoldTimeout);
         isMouseHeld = false;
@@ -178,24 +215,17 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
   }, []);
 
   useEffect(() => {
-    if (searchPerformed && position && mapRef.current) {
+    if (searchPerformed && center && mapRef.current) {
       mapRef.current.flyTo({
-        center: position,
+        center,
         zoom: 10,
         speed: 1.5,
         curve: 1.2,
         easing: (t) => t,
-        essential: true
+        essential: true,
       });
-
-      // Enable zooming after a search is performed
-      if (mapRef.current) {
-        mapRef.current.scrollZoom.enable();
-        mapRef.current.keyboard.enable();
-        spinEnabled = false; // Stop spinning after search
-      }
     }
-  }, [position, searchPerformed]);
+  }, [center, searchPerformed]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -216,7 +246,7 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
       if (mapRef.current) {
         if (event.key === '-') {
           mapRef.current.zoomOut();
-        } else if (event.key === '+' || event.key === '=' || event.key === 'NumpadAdd') { // Handle zoom in with '+'
+        } else if (event.key === '+' || event.key === '=' || event.key === 'NumpadAdd') {
           mapRef.current.zoomIn();
         }
       }
@@ -230,23 +260,24 @@ const MapboxMap = ({ position, searchPerformed, showControls }) => {
 
   return (
     <div>
-      <GamifiedTaskPopup // StartTask popup component
+      <SearchBar onSearch={handleSearch} />
+      <GamifiedTaskPopup
         task={sampleTask}
         user={sampleUser}
         isStaker={Math.random() > 0.5}
-        isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"} // Conditional rendering based on activePopup
-        onClose={() => setIsPopupOpen(false)} // Close the popup
+        isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"}
+        onClose={() => setIsPopupOpen(false) && setActivePopup(null)}
       />
-      <DropTaskPopup // DropTask popup component
-        isOpen={isPopupOpen && activePopup === "DropTaskPopup"} // Conditional rendering based on activePopup
-        onClose={() => setIsPopupOpen(false)}
-        onSuccess={handleDropTaskSuccess} // Callback function for task drop success
+      <DropTaskPopup
+        isOpen={isPopupOpen && activePopup === "DropTaskPopup"}
+        onClose={() => setIsPopupOpen(false) && setActivePopup(null) }
+        onSuccess={handleDropTaskSuccess}
       />
-      <div // Map container
+      <div
         id="map-container"
         ref={mapContainer}
-        style={{ width: '100%', height: '100vh', outline: 'none' }} // Remove outline
-        tabIndex="0" // Make the div focusable for keyboard controls
+        style={{ width: '100%', height: '100vh', outline: 'none' }}
+        tabIndex="0"
       />
     </div>
   );

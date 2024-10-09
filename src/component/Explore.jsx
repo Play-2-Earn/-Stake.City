@@ -11,8 +11,6 @@ const Explore = () => {
     return (
         <div>
         <MapBoxMap
-            position={center}
-            searchPerformed={false}
             showControls={false}
             />
         </div>
