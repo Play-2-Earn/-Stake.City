@@ -1,0 +1,44 @@
+/* DashboardGrid.module.css */
+
+.dashback {
+    background: #0e0527;
+    background-image: radial-gradient(#2b2b33 1px, transparent 1px),
+                      radial-gradient(#3b3b45 1px, transparent 1px),
+                      radial-gradient(#F0F3F5 1px, transparent 1px);
+    background-size: 200px 200px, 400px 400px;
+    background-position: 0 0, 100px 100px;
+}
+
+.user_dash {
+    border-radius: 100px;
+    background: radial-gradient(52.17% 52.17% at 50% 100%, #F0F3F5 0%, rgba(32, 201, 153, 0.50) 34.13%, #20C999 99.99%);
+    box-shadow: 0px -5px 4px 0px rgba(0, 0, 0, 0.50) inset, 0px 4px 1px 0px rgba(0, 0, 0, 0.50);
+}
+
+.starAnimation {
+    animation: stars 100s linear infinite;
+}
+
+@keyframes stars {
+    0% {
+        background-position: 0 0, 100px 100px;
+    }
+    100% {
+        background-position: -1000px 1000px, 2000px -2000px;
+    }
+}
+
+.float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+
