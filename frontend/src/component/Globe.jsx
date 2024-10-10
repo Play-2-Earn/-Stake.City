@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { getFresnelMat } from '../helpers/getFresnelMat'; // Assuming this file is still located here
-import '../css/globe.css';
+import '../component/styles/globe.css';
 
 const Globe = () => {
   const globeRef = useRef();

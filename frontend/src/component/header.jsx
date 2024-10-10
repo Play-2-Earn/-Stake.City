@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import mainlogo from '/mainLogo.png'
-import '../css/header.css'
+import '../component/styles//header.css'
 import SignUpPopUp from "./popups/signUpPopUp";
 import LogInPopUp from "./popups/logInPopUp";
 import ForgetPasswordPopup from "./popups/forgetPasswordPopup";
