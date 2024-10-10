@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
 import Home from './component/Home'
 import MapBoxMap from './component/MapboxMap';
-import UserDashboard from './user_dash/Dashboard';
+import UserDashboard from './component/user_dash/Dashboard';
 function App() {
 
   const [center, setCenter] = useState(null);
