@@ -1,0 +1,7 @@
+.release_pop_up_scroll::-webkit-scrollbar-button{
+ color: salmon;
+}
+
+::-webkit-scrollbar-thumb{
+    color: aqua;
+}

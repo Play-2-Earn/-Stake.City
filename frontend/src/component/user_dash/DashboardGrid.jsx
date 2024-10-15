@@ -3,13 +3,13 @@ import profileImage from '/avatar.svg';
 import styles from "./Dashboard.module.css"
 //import CircularProgress from "./CircularProgress";
 import token from "/bitcoin-2207.svg"
-//import { useNavigate } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
 
 const DashboardGrid = () => {
 
     return (
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 p-6 text-white min-h-screen ${styles.dashback} ${styles.starAnimation}`}>
+        <div className={` h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 p-6 text-white min-h-screen ${styles.dashback} ${styles.starAnimation}`}>
             {/* Row 1 */}
             <div className="col-span-1">
                 {/* Profile Column */}
@@ -109,6 +109,7 @@ const ActiveStakesSection = () => {
                     </div>
                 ))}
             </div>
+            <Link to="/releaseStake"> <button className=" mt-6 rounded-3xl mr-4 px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Release stakes </button></Link>
         </div>
     )
 }

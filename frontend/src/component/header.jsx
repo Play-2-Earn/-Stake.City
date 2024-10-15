@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import mainlogo from '/mainLogo.png'
-import '../css/header.css'
+import './styles/header.css'
 import SignUpPopUp from "./popups/signUpPopUp";
 import LogInPopUp from "./popups/logInPopUp";
 import ForgetPasswordPopup from "./popups/forgetPasswordPopup";
-import profilePic from '../images/profileIcon.png';
+import profilePic from '/profileIcon.png';
 
 const Header = () => {
     const [signUpPopUp, setsSignUpPopUp] = useState(false);

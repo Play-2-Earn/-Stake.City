@@ -4,6 +4,7 @@ import './App.css'
 import Home from './component/Home'
 import MapBoxMap from './component/MapboxMap';
 import UserDashboard from './component/user_dash/Dashboard';
+import ReleaseStake from './component/release_stakes';
 function App() {
 
   const [center, setCenter] = useState(null);
@@ -23,6 +24,7 @@ function App() {
         </Route>
 
         <Route path="/userdashboard" element={<UserDashboard />}> </Route>
+        <Route path="/releaseStake" element={<ReleaseStake />}> </Route>
       </Routes>
     </BrowserRouter>
 

@@ -1,12 +1,12 @@
 import React, { Fragment } from 'react'
 import { Menu, Popover, Transition } from '@headlessui/react'
 import { HiOutlineBell, HiOutlineSearch, HiOutlineChatAlt } from 'react-icons/hi'
-//import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import classNames from 'classnames'
 import profileImage from '/avatar.svg';
-  
+
 export default function DashboardHeader({toggleSidebar}) {
-    //const navigate = useNavigate()
+    const navigate = useNavigate()
 
     return (
         <div className="bg-[#0D1B2A] h-14 px-4 flex justify-between items-center ">
@@ -93,7 +93,7 @@ export default function DashboardHeader({toggleSidebar}) {
 							</div>
 						</Menu.Button>
 					</div>
-					{/*<Transition
+					<Transition
 						as={Fragment}
 						enter="transition ease-out duration-100"
 						enterFrom="transform opacity-0 scale-95"
@@ -142,7 +142,7 @@ export default function DashboardHeader({toggleSidebar}) {
 								)}
 							</Menu.Item>
 						</Menu.Items>
-					</Transition>*/}
+					</Transition>
 				</Menu>
             </div>
         </div>
