@@ -25,6 +25,7 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [verbalAddress, setVerbalAddress] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
   const [isLink, setIsLink] = useState(false);
+  const markers = useRef([]);
 
   // Fetch locations from the backend when the component mounts
   useEffect(() => {
@@ -177,7 +178,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     const marker = new mapboxgl.Marker()
       .setLngLat(coordinates)
       .addTo(mapRef.current);
-
+    markers.current.push({ marker, coordinates });
     // Disable map interaction when hovering over the marker
     marker.getElement().addEventListener('mouseenter', () => {
       mapRef.current.scrollZoom.disable();
@@ -214,6 +215,7 @@ const MapboxMap = ({ showControls, q_id }) => {
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 20;
+  const MIN_ZOOM_FOR_MARKERS = 7; // Update this to control when markers appear
   const secondsPerRevolution = 240;
   let spinEnabled = true;
   let mouseHoldTimeout = null;
@@ -334,7 +336,33 @@ const MapboxMap = ({ showControls, q_id }) => {
       }
     }
   }, [showControls]);
-
+  const updateMarkerVisibility = () => {
+    const currentZoom = mapRef.current.getZoom();
+    const mapBounds = mapRef.current.getBounds();
+  
+    markers.current.forEach((marker) => {
+      const isVisible =
+        currentZoom >= MIN_ZOOM_FOR_MARKERS &&
+        mapBounds.contains(marker.coordinates);
+    
+      marker.marker.getElement().style.display = isVisible ? 'block' : 'none';
+    });
+    
+  };
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.on('zoom', updateMarkerVisibility);
+      mapRef.current.on('move', updateMarkerVisibility); // Update when the map moves as well
+  
+      // Initial call to set the visibility when the map first loads
+      updateMarkerVisibility();
+  
+      return () => {
+        mapRef.current.off('zoom', updateMarkerVisibility);
+        mapRef.current.off('move', updateMarkerVisibility);
+      };
+    }
+  }, []);
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (mapRef.current) {
