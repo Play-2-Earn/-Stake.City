@@ -12,13 +12,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />}></Route>
+      <Route path="/" element={<Home />}></Route>
+        <Route path="/:q_id" element={<Home />}></Route>
         {/* this is the place where all the routes will be added, kindly take a consideration to comments*/}
         <Route path="/explore" element={
           <Explore />
         }>
         </Route>
-
+        <Route path="/explore/:q_id" element={<Explore />} />
         <Route path="/userdashboard" element={<UserDashboard />}> </Route>
       </Routes>
     </BrowserRouter>

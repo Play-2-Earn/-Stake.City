@@ -97,30 +97,38 @@ const signUpPopUp = ({ isOpen, onClose, AlreadyUserClick, onRegisterSuccess }) =
                     </div>
 
                     {/* Content */}
-                    <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
+                    <form className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900" onSubmit={handleSignUp}>
                         <InputField
                             id="fullName"
                             label="Player Name"
                             icon={<User />}
                             placeholder="Cosmic Chris"
+                            value={fullName}
+                            onChange={(e) => setfullName(e.target.value)}
                         />
                         <InputField
                             id="username"
                             label="Username"
                             icon={<UserPlus />}
                             placeholder="cosmic_chris_42"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                         />
                         <InputField
                             id="dob"
-                            label="Date Of Birth"
+                            label="Age"
                             icon={<Calendar />}
-                            type="date"
+                            type="number"
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
                         />
                         <InputField
                             id="phone"
                             label="Phone Number"
                             icon={<Phone />}
                             placeholder="+1 (123) 456-7890"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
                         />
                         <InputField
                             id="email"
@@ -128,11 +136,22 @@ const signUpPopUp = ({ isOpen, onClose, AlreadyUserClick, onRegisterSuccess }) =
                             icon={<Mail />}
                             placeholder="chris@cosmos.com"
                             type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
-                        <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
+                        <InputField
+                            id="password"
+                            label="Password"
+                            icon={<Key />} // Assuming you have a Lock icon
+                            placeholder="••••••••"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <Button type="submit" className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
                             Sign Up
                         </Button>
-                    </div>
+                    </form>
 
                     {/* Footer */}
                     <div className="p-4 bg-gradient-to-r from-slate-900 to-teal-400 text-white text-center">

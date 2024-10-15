@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, FloatField, IntField, BooleanField,DateTimeField, ReferenceField,connect
+from mongoengine import Document, StringField, FloatField, IntField, BooleanField,DateTimeField, ReferenceField,connect,DictField, ListField
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -56,9 +56,25 @@ class PreviousPasswords(Document):
 # Question Model
 class Question(Document):
     user = ReferenceField(User, required=True)
-    user_name = StringField(required=True)  # Added user_name field
+    user_name = StringField(required=True)
+    question_id = StringField()
+    question_title = StringField(required=True)
     question_text = StringField(required=True)
     stake_amount = FloatField(required=True)
+    coordinates = DictField()
     location_name = StringField()
     timestamp = DateTimeField(default=datetime.utcnow)
     visible_until = DateTimeField(required=True)
+    has_been_extended = BooleanField(default=False)
+    verbal_address = StringField()  # New field added
+class QuestionExtension(Document):
+    question = ReferenceField(Question, required=True)
+    extended_by_days = IntField(required=True)
+    extension_date = DateTimeField(default=datetime.utcnow)
+
+class Answer(Document):
+    question_id = ReferenceField('Question', required=True) 
+    asker_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)  
+    answer_giver_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)
+    answer = StringField(required=True)
+    likes = ListField(StringField(), default=[])

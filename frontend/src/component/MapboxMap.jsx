@@ -10,7 +10,7 @@ import './styles/mapboxmap.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-const MapboxMap = ({ showControls }) => {
+const MapboxMap = ({ showControls, q_id }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
   const [activePopup, setActivePopup] = useState(null);
@@ -21,7 +21,71 @@ const MapboxMap = ({ showControls }) => {
   const [center, setCenter] = useState([0, 0]);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [query, setQuery] = useState("");
+  const [longLat, setLongLat] = useState(null);
+  const [verbalAddress, setVerbalAddress] = useState(null);
+  const [allTasks, setAllTasks] = useState([]);
+  const [isLink, setIsLink] = useState(false);
 
+  // Fetch locations from the backend when the component mounts
+  useEffect(() => {
+    if (q_id) {
+      setIsLink(true);
+  
+        // Fetch the question data from the API
+        fetch(`http://localhost:5000/api/view_question/${q_id}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Question not found.");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            setAllTasks((prevTasks) => [...prevTasks, data]);
+            setSelectedTask({
+              question_id: data.question_id,
+              title: data.taskTitle,
+              description: data.taskDescription,
+              location: data.location_name,
+              user_name: data.user_name,
+              full_name: data.full_name,
+              stakeAmount: data.stake_amount,
+              share_url: data.share_url,
+              navigation_url: data.navigation_url
+            });
+            handleMarkerClick(data);
+          })
+          .catch((error) => {
+            console.error(error.message);
+          });
+      }
+    
+    const fetchLocations = async () => {
+      try {
+        const token = sessionStorage.getItem("jwtToken");
+        const response = await fetch("http://localhost:5000/api/get_all_tasks", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }); 
+        const data = await response.json();
+        setAllTasks(data); 
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  // Create markers for each location
+  useEffect(() => {
+    console.log("tasks", allTasks);
+    allTasks.forEach((task) => {
+      console.log("task", task);
+      createMarker(task.coordinates, task);
+    });
+  }, [allTasks]);
+  
   const sampleTask = {
     title: "Magical Park Cleanup Quest",
     description: "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
@@ -29,12 +93,7 @@ const MapboxMap = ({ showControls }) => {
     stakeAmount: 1000,
   };
 
-  const sampleUser = {
-    name: "Eco Warrior Alice",
-    id: "hero123",
-    level: 42,
-    avatar: "/api/placeholder/100/100",
-  };
+  
 
   // UI button handling functions
 
@@ -56,15 +115,20 @@ const MapboxMap = ({ showControls }) => {
   // Popup handling functions
 
   const handleMarkerClick = (task) => {
+    console.debug("handleMarkerClick", task);
     setSelectedTask(task);
+    console.log("opening task", task);
     setActivePopup("GamifiedTaskPopup");
     setIsPopupOpen(true);
   };
 
+
   const handleDropQuestClick = (coordinates) => {
     setActivePopup("DropTaskPopup");
     setIsPopupOpen(true);
+    console.log(getAddressFromCoordinates(coordinates.lng, coordinates.lat));
     setTaskCoordinates(coordinates);
+    setLongLat(coordinates); 
   };
 
   useEffect(() => {
@@ -80,34 +144,36 @@ const MapboxMap = ({ showControls }) => {
     }
   }, [activePopup, selectedTask]);
 
-  const handleDropTaskSuccess = (wasSuccessful) => {
-    setDropTaskSuccess(wasSuccessful);
+  const handleDropTaskSuccess = (task) => {
+    setDropTaskSuccess(task);
     setIsPopupOpen(false);
 
-    if (wasSuccessful) {
+    if (task) {
       if (taskCoordinates && mapRef.current) {
-        const marker = createMarker(taskCoordinates); // Create the marker
+        const marker = createMarker(taskCoordinates,task); // Create the marker
 
         setTaskMarkers(prevMarkers => [
           ...prevMarkers,
           {
             marker,
             task: {
-              title: "Magical Park Cleanup Quest",
-              description: "Embark on an enchanted journey...",
-              location: "Central Park, New York",
+              title: task.taskTitle,
+              description: task.taskDescription,
+              location: task.taskLocation,
             }
           }
         ]);
-
+        setSelectedTask(task);
+        handleMarkerClick(task);
         setTaskCoordinates(null);
+        console.log("Drop task successful");
       }
     } else {
       setIsPopupOpen(false);
     }
   };
 
-  const createMarker = (coordinates) => {
+  const createMarker = (coordinates, task) => {
     const marker = new mapboxgl.Marker()
       .setLngLat(coordinates)
       .addTo(mapRef.current);
@@ -127,9 +193,15 @@ const MapboxMap = ({ showControls }) => {
     // Handle marker click to show the task popup
     marker.getElement().addEventListener('click', () => {
       handleMarkerClick({
-        title: "Magical Park Cleanup Quest",
-        description: "Embark on an enchanted journey...",
-        location: "Central Park, New York",
+        question_id: task.question_id,
+        title: task.taskTitle,
+        description: task.taskDescription,
+        location: task.location_name,
+        user_name: task.user_name,
+        full_name: task.full_name,
+        stakeAmount: task.stake_amount,
+        share_url: task.share_url,
+        navigation_url: task.navigation_url
       });
     });
 
@@ -146,7 +218,28 @@ const MapboxMap = ({ showControls }) => {
   let spinEnabled = true;
   let mouseHoldTimeout = null;
   let isMouseHeld = false;
-
+  const getAddressFromCoordinates = async (lng, lat) => {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`;
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+  
+      if (data.features && data.features.length > 0) {
+        const address = data.features[0].place_name; // Get the most relevant address
+        console.log('Address:', address);
+        setVerbalAddress(address);
+        return address;
+      } else {
+        console.log('No address found');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      return null;
+    }
+  };
+  
   useEffect(() => {
     if (mapContainer.current) {
       const map = new mapboxgl.Map({
@@ -197,6 +290,7 @@ const MapboxMap = ({ showControls }) => {
         isMouseHeld = true;
         mouseHoldTimeout = setTimeout(() => {
           if (isMouseHeld) {
+            console.log("Mouse held",  e.lngLat);
             handleDropQuestClick(e.lngLat);
           }
         }, 1000);
@@ -257,21 +351,26 @@ const MapboxMap = ({ showControls }) => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
+  const { lng, lat } = longLat || {};
   return (
     <div>
       <SearchBar onSearch={handleSearch} />
       <GamifiedTaskPopup
-        task={sampleTask}
-        user={sampleUser}
+        task={selectedTask}
         isStaker={Math.random() > 0.5}
         isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"}
         onClose={() => setIsPopupOpen(false) && setActivePopup(null)}
       />
       <DropTaskPopup
         isOpen={isPopupOpen && activePopup === "DropTaskPopup"}
-        onClose={() => setIsPopupOpen(false) && setActivePopup(null) }
+        onClose={() => {
+          setIsPopupOpen(false);
+          setActivePopup(null);
+        }}
         onSuccess={handleDropTaskSuccess}
+        lng={lng}
+        lat={lat}
+        verbalAddress={verbalAddress}
       />
       <div
         id="map-container"

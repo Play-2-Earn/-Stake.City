@@ -4,8 +4,17 @@ import { Link } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
 import Globe from "./Globe";
+import Button from "./popups/popups_component/button";
 
 const Home = () => {
+
+    const handleStart = () => {
+        if (sessionStorage.getItem("jwtToken")) {
+            window.location.href = "/explore";
+        }else{
+            alert("Please login first");
+        }
+    }
     return (
         <>
             <Header />
@@ -13,7 +22,8 @@ const Home = () => {
                 <Globe />
                 <div className="">
                     <h1 className="glob_text drop-shadow-xl">Are you ready to explore?</h1>
-                    <Link to="/explore" className=" glob_start_btn rounded-3xl px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Start Game </Link>
+                    {/* changed link to button for auth */}
+                    <Link onClick={handleStart} className=" glob_start_btn rounded-3xl px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Start Game </Link>
                 </div>
             </div>
             <div className="second_ele bg-transparent">

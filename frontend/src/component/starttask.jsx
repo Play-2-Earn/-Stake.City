@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -24,31 +24,110 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
+
+const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
   const [chatMessage, setChatMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("jwtToken");
+
+    if (task) {
+      fetch(`http://localhost:5000/api/get_answers?question_id=${task.question_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.message === "Answers fetched successfully!") {
+            setChatHistory({"answers":data.answers, "question_id": task.question_id});
+          } else {
+            alert(data.message);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  }, [task]);
   const handleSendMessage = () => {
+    const token = sessionStorage.getItem("jwtToken");
+    
     if (chatMessage.trim()) {
-      setChatHistory([
-        ...chatHistory,
-        { sender: user.name, message: chatMessage, likes: 0 },
-      ]);
-      setChatMessage("");
+      fetch("http://localhost:5000/api/post_answer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          asker_user_id: task.user_name,
+          question_id: task.question_id,
+          answer: chatMessage,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.message === "Answers fetched successfully!") {
+            setChatHistory({"answers":data.answers, "question_id": task.question_id});
+            setChatMessage("");
+          } else {
+            alert(data.message);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+      
     }
   };
-
+  const handleShare= () => {
+    if (task.share_url) {
+      navigator.clipboard.writeText(task.share_url).then(() => {
+        alert("Share URL copied to clipboard!");
+      }).catch(err => {
+        console.error("Failed to copy: ", err);
+      });
+    } else {
+      alert("Share URL is not available yet.");
+    }
+  };
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     setUploadedFiles([...uploadedFiles, ...files]);
   };
 
-  const handleLike = (index) => {
-    const updatedHistory = [...chatHistory];
-    updatedHistory[index].likes += 1;
-    setChatHistory(updatedHistory);
+  const handleLike = (answer_id, index) => {
+    fetch(`http://localhost:5000/api/like_answer/${answer_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user_name: task.user_name }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.message === "Answer liked successfully!") {
+          const updatedHistory = [...chatHistory.answers];
+          // Increment the likes count for the answer at the given index
+          // and add the current user's name to the list of users who have liked it
+          updatedHistory[index] = {
+            ...updatedHistory[index],
+            likes: [...updatedHistory[index].likes, task.user_name],
+          };
+          setChatHistory({"answers":updatedHistory, "question_id": task.question_id});
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const toggleDescription = () => {
@@ -110,7 +189,11 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                   <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   <span>{task.location}</span>
                 </div>
-                <Navigation className="w-4 h-4 md:w-6 md:h-6 text-yellow-300 filter drop-shadow-lg" />
+                <Navigation
+                  className="w-4 h-4 md:w-6 md:h-6 text-yellow-300 filter drop-shadow-lg"
+                  onClick={() => window.open(task.navigation_url, "_blank")}
+
+                />
               </div>
             </div>
 
@@ -123,19 +206,19 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
               >
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-12 h-12 md:w-16 md:h-16 border-4 border-yellow-400 shadow-xl">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage alt={task.full_name} />
+                    <AvatarFallback>{task.full_name}</AvatarFallback>
                   </Avatar>
                   <div className="text-xs md:text-sm">
                     <h3
                       className="font-extrabold text-blue-700 text-lg md:text-xl"
                       style={{ textShadow: "1px 1px 0 #60A5FA" }}
                     >
-                      {user.name}
+                      {task.full_name}
                     </h3>
                     <div className="text-sm md:text-base flex items-center bg-yellow-400 px-2 py-1 rounded-full mt-1 shadow-md">
                       <Zap className="w-4 h-4 md:w-5 md:h-5 text-blue-700 mr-1" />
-                      Level {user.level}
+                      Level 1
                     </div>
                   </div>
                 </div>
@@ -169,7 +252,8 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                       size="icon"
                       className="text-green-500 hover:text-green-700 transition-colors duration-200"
                     >
-                      <Share2 className="w-5 h-5" />
+                      <Share2 className="w-5 h-5" 
+                      onClick={handleShare}/>
                     </Button>
                     <Button
                       variant="ghost"
@@ -200,9 +284,13 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                 </h4>
                 <div
                   className="overflow-y-auto mb-3 p-3 bg-blue-50 rounded-xl border-2 border-blue-200"
-                  style={{ height: "calc(100% - 4rem)" }}
+                  style={{ height: "calc(100% - 4rem)",
+                    overflowY: "scroll",
+                    maxHeight: "180px",
+                   }}
                 >
-                  {chatHistory.map((chat, index) => (
+                  {chatHistory !== null && chatHistory.question_id === task.question_id && chatHistory.answers
+                    .map((chat, index) => (
                     <motion.div
                       key={index}
                       className="text-xs md:text-sm mb-3 flex justify-between items-center bg-white p-3 rounded-xl shadow-md border-2 border-blue-300"
@@ -220,12 +308,13 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleLike(index)}
+                          onClick={() => handleLike(chat.answer_id, index)}
                           className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                          disabled={chat.likes.includes(task.user_name)}
                         >
                           <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" />
-                          {chat.likes > 0 && (
-                            <span className="ml-1 text-xs">{chat.likes}</span>
+                          {chat.likes.length > 0 &&  (
+                            <span className="ml-1 text-xs">{chat.likes.length}</span>
                           )}
                         </Button>
                         <DropdownMenu>
@@ -247,7 +336,7 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                       </div>
                     </motion.div>
                   ))}
-                  {chatHistory.length === 0 && (
+                  {chatHistory !== null && chatHistory.answers.length === 0 && (
                     <div className="text-xs md:text-sm text-gray-500 italic text-center p-4 bg-blue-100 rounded-xl border-2 border-blue-200">
                       Start your quest by sending a message!
                     </div>
@@ -263,6 +352,9 @@ const GamifiedTaskPopup = ({ task, user, isOpen, onClose }) => {
                 style={{
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
+
+                    
+/******  93388eab-c8ad-4299-ac49-83f3befb201a  *******/
                 }}
               ></div>
               <input

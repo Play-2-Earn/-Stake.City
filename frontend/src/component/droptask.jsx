@@ -1,29 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, XCircle, DollarSign, CheckCircle, Loader } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
+import SignTransactionModal from "./popups/transactionPopup";
 
-const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
+const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) => {
   const [step, setStep] = useState(0);
+  const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [stakeAmount, setStakeAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
+  const [isTransactionPopupOpen, setIsTransactionPopupOpen] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState({
+    stakeAmount: "0", 
+    gasFee: "5",       
+  });
   const handleYes = () => {
     setStep(1);
   };
+  useEffect(() => {
+    if (stakeAmount > 0) {
+      setTransactionDetails(prevDetails => ({
+        ...prevDetails,
+        stakeAmount: stakeAmount
+      }));
+    }
+  }, [stakeAmount]);
+  const handleSubmit = async () => {
+    try {
+      const jwtToken = sessionStorage.getItem("jwtToken");
+      console.log(jwtToken);
+      const response = await fetch('http://localhost:5000/api/drop_task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          taskTitle,
+          taskDescription,
+          stakeAmount,
+          lng,
+          lat,
+          verbalAddress,
+        }),
+      });
 
-  const handleSubmit = () => {
-    setIsLoading(true);
-    // Simulating a transaction
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(2);
-      setIsSuccess(true); // <-- need to move to appropriate line once submission handling is implemented
-    }, 2000);
+      if (response.ok) {
+        const data = await response.json();
+        // Call onSuccess with the returned data if necessary
+        onSuccess(data);
+        // Optionally close the popup on success
+        onClose();
+      } else {
+        // Handle errors
+        console.error('Error creating task:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const resetAndClose = () => {
@@ -37,6 +75,24 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
 
   if (!isOpen) return null;
 
+  // Renamed from handleSubmit to openStakingModal
+  const openStakingModal = () => {
+    setIsTransactionPopupOpen(true);
+  };
+
+  const confirmStakingTransaction = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate
+      console.log("Staking transaction signed!");
+      setIsTransactionPopupOpen(false);
+      handleSubmit();
+    } catch (error) {
+      console.error("Error signing transaction:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -89,7 +145,7 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
               <div className="flex items-center space-x-3 mt-2 relative z-10">
                 <div className="flex items-center text-xs sm:text-sm text-white bg-blue-700 px-3 py-1 rounded-full shadow-inner">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                  <span>{location}</span>
+                  <span>{verbalAddress}</span>
                 </div>
               </div>
             </div>
@@ -123,6 +179,20 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
               {step === 1 && (
                 <div className="space-y-4">
                   <div>
+                  <label
+                      htmlFor="task-description"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Task Title
+                    </label>
+                    <Input
+                      style={{color: "black"}}
+                      id="task-title"
+                      value={taskTitle}
+                      onChange={(e) => setTaskTitle(e.target.value)}
+                      placeholder="Enter task title"
+                      className="w-full p-2 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                     <label
                       htmlFor="task-description"
                       className="block text-sm font-medium text-gray-700 mb-1"
@@ -130,6 +200,7 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
                       Task Description
                     </label>
                     <Textarea
+                      style={{color: "black"}}
                       id="task-description"
                       value={taskDescription}
                       onChange={(e) => setTaskDescription(e.target.value)}
@@ -147,6 +218,7 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
                     </label>
                     <div className="relative">
                       <Input
+                      style={{color: "black"}}
                         id="stake-amount"
                         type="number"
                         value={stakeAmount}
@@ -164,7 +236,7 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
                     </div>
                   </div>
                   <Button
-                    onClick={handleSubmit}
+                    onClick={openStakingModal}
                     disabled={!taskDescription || !stakeAmount || isLoading}
                     className={`w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full text-lg transform hover:scale-105 transition-all duration-200 ${
                       isLoading ? "opacity-50 cursor-not-allowed" : ""
@@ -177,6 +249,14 @@ const DropTaskPopup = ({ isOpen, onClose, location, onSuccess}) => {
                       "Sign Transaction"
                     )}
                   </Button>
+
+                  <SignTransactionModal
+                    isOpen={isTransactionPopupOpen}
+                    onClose={() => setIsTransactionPopupOpen(false)}
+                    onConfirm={confirmStakingTransaction}
+                    isLoading={isLoading}
+                    transactionDetails={transactionDetails}
+                  />
                 </div>
               )}
 

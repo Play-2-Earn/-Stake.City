@@ -26,9 +26,14 @@ def create_app():
     from .api.Register import register_bp
     from .api.login import login_bp
     from .api.Reset import reset_password_bp
+    from .api.question import question_bp
+    from .api.answer import answer_bp
 
     app.register_blueprint(register_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(reset_password_bp)
+    app.register_blueprint(question_bp)
+    app.register_blueprint(answer_bp)
+
 
     return app

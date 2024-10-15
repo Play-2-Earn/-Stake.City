@@ -4,9 +4,11 @@ import Button from "./popups_component/button";
 import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess }) => {
     if (!isOpen) return null;
+    const {q_id} = useParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(null);
@@ -37,7 +39,10 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
             sessionStorage.setItem("jwtToken", data.token);
             onLoginSuccess();
             onClose();
-
+            if (q_id) {
+                console.log(`Received q_id: ${q_id}`);
+                window.location.href = `/explore/${String(q_id)}`;
+            }
             // window.location.href = "/dashboard";
         } catch (err) {
             setLoading(false);
@@ -92,18 +97,22 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
                             </Button>
                         </div>
                     </div>
-
+                    <form onSubmit={handleLogin}>
                     <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
                         <InputField
                             id="loginUsername"
                             label="Email ID"
                             icon={<User />}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="cosmic_chris_42 or chris@cosmos.com"
                         />
                         <InputField
                             id="loginPassword"
                             label="Password"
                             icon={<Key />}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             placeholder="••••••••"
                         />
@@ -117,9 +126,11 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
                             </Button>
                         </div>
                         <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
-                            Enter to Stake City
+                            {loading ? "Logging In..." : "Enter to Stake City"}
+                            
                         </Button>
                     </div>
+                    </form>
 
                     {/* Footer */}
                     <div className="p-4 bg-gradient-to-r from-slate-900 to-teal-400 text-white text-center">
