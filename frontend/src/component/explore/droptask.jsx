@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, XCircle, DollarSign, CheckCircle, Loader } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import SignTransactionModal from "./popups/transactionPopup";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import SignTransactionModal from "../popups/transactionPopup";
 
 const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) => {
   const [step, setStep] = useState(0);

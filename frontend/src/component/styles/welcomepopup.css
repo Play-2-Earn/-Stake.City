@@ -1,0 +1,91 @@
+.welcome-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; 
+    user-select: none;
+  }
+  
+  .welcome-popup-content {
+    background-color: rgba(34, 34, 34, 0); 
+    color: #34eb8f; 
+    padding: 30px;
+    text-align: center;
+    border-radius: 10px;
+    border: 2px dotted #34eb8f; 
+    width: 400px;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+  }
+  
+  .close-popup-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #34eb8f;
+    color: #222;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .close-popup-button:hover {
+    background-color: #2bc176;
+  }
+  
+  .welcomePopupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Higher than the map and other elements */
+  }
+  
+  .welcomePopupContent {
+    background-color: rgba(34, 34, 34, 0.9); /* Slightly transparent black background */
+    color: #34eb8f; /* Light green text similar to your reference */
+    padding: 30px;
+    text-align: center;
+    border-radius: 10px;
+    border: 2px solid #34eb8f; /* Green outline like the reference image */
+    width: 400px;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.8); /* Glowing effect around the box */
+  }
+  
+  .welcomePopupContent h1 {
+    color: #34eb8f; /* Ensure the heading also has the same green color */
+    font-size: 24px;
+  }
+  
+  .welcomePopupContent p {
+    font-size: 16px;
+    color: #cfcfcf; /* Slightly off-white text */
+  }
+  
+  .closePopupButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #34eb8f;
+    color: #222;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .closePopupButton:hover {
+    background-color: #2bc176;
+  }
+  

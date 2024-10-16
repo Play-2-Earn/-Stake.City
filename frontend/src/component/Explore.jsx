@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import MapBoxMap from './MapboxMap'
-import DropTaskPopup from "./droptask";
-import Header from "./header";
+import MapBoxMap from './explore/MapboxMap'
+import DropTaskPopup from "./explore/droptask";
 
 const Explore = () => {
     const { q_id } = useParams(); 
@@ -24,8 +23,6 @@ const Explore = () => {
     }, [q_id]);
     return (
         <div>
-
-            <Header />
         <MapBoxMap
             showControls={false}
             q_id={q_id}

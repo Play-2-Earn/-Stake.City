@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import DropTaskPopup from "./droptask";
 import GamifiedTaskPopup from "./starttask";
 import SearchBar from "./searchbar";
+import UserInfo from './UserInfo';
+import WelcomePopup from './welcomepopup';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import './styles/mapboxmap.css';
+import '../styles/mapboxmap.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -21,6 +23,8 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [center, setCenter] = useState([0, 0]);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [query, setQuery] = useState("");
+  const [welcomePopupOpen, setWelcomePopupOpen] = useState(true);
+  const spinEnabledRef = useRef(true);
   const [longLat, setLongLat] = useState(null);
   const [verbalAddress, setVerbalAddress] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
@@ -94,7 +98,12 @@ const MapboxMap = ({ showControls, q_id }) => {
     stakeAmount: 1000,
   };
 
-  
+  const sampleUser = {
+    name: "Eco Warrior Alice",
+    id: "hero123",
+    level: 42,
+    avatar: "/api/placeholder/100/100",
+  };
 
   // UI button handling functions
 
@@ -105,7 +114,21 @@ const MapboxMap = ({ showControls, q_id }) => {
       );
       const data = await response.json();
       const { center, place_name } = data.features[0];
-      setCenter(center);
+
+      // Stop spinning when search is performed
+      spinEnabledRef.current = false;
+
+      // Fly to the searched location without refreshing the map
+      if (mapRef.current) {
+        mapRef.current.flyTo({
+          center,
+          zoom: 10,
+          speed: 1.5,
+          curve: 1.2,
+          essential: true, // this ensures that the animation is performed
+        });
+      }
+
       setSearchPerformed(true);
       setQuery(place_name);
     } catch (error) {
@@ -114,6 +137,10 @@ const MapboxMap = ({ showControls, q_id }) => {
   };
 
   // Popup handling functions
+
+  const handleCloseWelcomePopup = () => {
+    setWelcomePopupOpen(false); // Once the welcome popup is closed, the rest of the UI will be shown
+  };
 
   const handleMarkerClick = (task) => {
     console.debug("handleMarkerClick", task);
@@ -131,19 +158,6 @@ const MapboxMap = ({ showControls, q_id }) => {
     setTaskCoordinates(coordinates);
     setLongLat(coordinates); 
   };
-
-  useEffect(() => {
-    console.log("Popup state changed:", isPopupOpen);
-  }, [isPopupOpen]);
-
-  useEffect(() => {
-      if (activePopup === "GamifiedTaskPopup") {
-          console.log("GamifiedTaskPopup opened with task:", selectedTask);
-      }
-      if (activePopup === "DropTaskPopup") {
-        console.log("DropTaskPopup opened");
-    }
-  }, [activePopup, selectedTask]);
 
   const handleDropTaskSuccess = (task) => {
     setDropTaskSuccess(task);
@@ -217,9 +231,9 @@ const MapboxMap = ({ showControls, q_id }) => {
   const MAX_ZOOM = 20;
   const MIN_ZOOM_FOR_MARKERS = 7; // Update this to control when markers appear
   const secondsPerRevolution = 240;
-  let spinEnabled = true;
   let mouseHoldTimeout = null;
   let isMouseHeld = false;
+
   const getAddressFromCoordinates = async (lng, lat) => {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`;
   
@@ -254,6 +268,7 @@ const MapboxMap = ({ showControls, q_id }) => {
         maxZoom: MAX_ZOOM,
         scrollZoom: false,
         keyboard: false,
+        
       });
 
       mapRef.current = map;
@@ -261,7 +276,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       let userInteracting = false;
 
       const spinGlobe = () => {
-        if (spinEnabled && !userInteracting) {
+        if (spinEnabledRef.current && !userInteracting) {
           const distancePerSecond = 360 / secondsPerRevolution;
           const center = map.getCenter();
           center.lng -= distancePerSecond;
@@ -273,7 +288,7 @@ const MapboxMap = ({ showControls, q_id }) => {
 
       map.on('mousedown', () => {
         userInteracting = true;
-        spinEnabled = false;
+        spinEnabledRef.current = false;
       });
 
       map.on('dragend', () => {
@@ -284,7 +299,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       map.on('rotate', () => {
         map.scrollZoom.enable();
         map.keyboard.enable();
-        spinEnabled = false;
+        spinEnabledRef.current = false;
       });
 
       // Mouse hold to create a task
@@ -311,19 +326,6 @@ const MapboxMap = ({ showControls, q_id }) => {
   }, []);
 
   useEffect(() => {
-    if (searchPerformed && center && mapRef.current) {
-      mapRef.current.flyTo({
-        center,
-        zoom: 10,
-        speed: 1.5,
-        curve: 1.2,
-        easing: (t) => t,
-        essential: true,
-      });
-    }
-  }, [center, searchPerformed]);
-
-  useEffect(() => {
     if (mapRef.current) {
       if (navigationControlRef.current) {
         mapRef.current.removeControl(navigationControlRef.current);
@@ -336,6 +338,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       }
     }
   }, [showControls]);
+
   const updateMarkerVisibility = () => {
     const currentZoom = mapRef.current.getZoom();
     const mapBounds = mapRef.current.getBounds();
@@ -382,6 +385,19 @@ const MapboxMap = ({ showControls, q_id }) => {
   const { lng, lat } = longLat || {};
   return (
     <div>
+      {/* User info should always be visible */}
+      <UserInfo user={sampleUser} />
+      <div
+        id="map-container"
+        ref={mapContainer}
+        style={{ width: '100%', height: '100vh', outline: 'none' }}
+        tabIndex="0"
+      />
+      {/* Show the welcome popup when it's open */}
+      {welcomePopupOpen && <WelcomePopup onClose={handleCloseWelcomePopup}/>}
+      
+      {!welcomePopupOpen && (
+      <>
       <SearchBar onSearch={handleSearch} />
       <GamifiedTaskPopup
         task={selectedTask}
@@ -400,12 +416,9 @@ const MapboxMap = ({ showControls, q_id }) => {
         lat={lat}
         verbalAddress={verbalAddress}
       />
-      <div
-        id="map-container"
-        ref={mapContainer}
-        style={{ width: '100%', height: '100vh', outline: 'none' }}
-        tabIndex="0"
-      />
+  
+      </>
+      )}
     </div>
   );
 };
