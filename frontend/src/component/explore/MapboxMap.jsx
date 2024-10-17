@@ -6,6 +6,7 @@ import GamifiedTaskPopup from "./starttask";
 import SearchBar from "./searchbar";
 import UserInfo from './UserInfo';
 import WelcomePopup from './welcomepopup';
+import Taskbar from './Taskbar';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
@@ -102,7 +103,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     name: "Eco Warrior Alice",
     id: "hero123",
     level: 42,
-    avatar: "/api/placeholder/100/100",
+    avatar: "/avatar-temp.png",
   };
 
   // UI button handling functions
@@ -399,6 +400,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       {!welcomePopupOpen && (
       <>
       <SearchBar onSearch={handleSearch} />
+      <Taskbar />
       <GamifiedTaskPopup
         task={selectedTask}
         isStaker={Math.random() > 0.5}

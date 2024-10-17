@@ -41,7 +41,7 @@ const SearchBar = ({ onSearch }) => {
   };
   
   return (
-    <div style={{ position: 'absolute', bottom: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 15, display: 'flex', alignItems: 'center' }}>
+    <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', zIndex: 15, display: 'flex', alignItems: 'center' }}>
       {/* Search Input Box */}
       <input
         type="text"
