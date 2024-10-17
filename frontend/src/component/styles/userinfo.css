@@ -17,6 +17,11 @@
     height: 50px;
     border-radius: 50%;
     margin-right: 10px;
+    transition: transform 0.1s ease-in-out;
+  }
+
+  .user-avatar img:hover {
+    transform: scale(1.2);
   }
   
   .user-details {

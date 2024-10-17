@@ -7,6 +7,7 @@ import SearchBar from "./searchbar";
 import UserInfo from './UserInfo';
 import WelcomePopup from './welcomepopup';
 import Taskbar from './Taskbar';
+import ZoomOutButton from './ZoomOutButton';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
@@ -103,7 +104,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     name: "Eco Warrior Alice",
     id: "hero123",
     level: 42,
-    avatar: "/avatar-temp.png",
+    avatar: "/avatar.svg",
   };
 
   // UI button handling functions
@@ -235,6 +236,40 @@ const MapboxMap = ({ showControls, q_id }) => {
   let mouseHoldTimeout = null;
   let isMouseHeld = false;
 
+  const initialZoom = 1;
+  const initialCenter = [-1.4, 54.0]; // Centered on the UK
+
+  // Function to reset zoom and center to initial values
+  const handleZoomReset = () => {
+    if (mapRef.current) {
+      const currentZoom = mapRef.current.getZoom();
+  
+      let speed = 2;   // Default speed for moderate zoom levels
+      let curve = 1.4; // Default curve for moderate zoom levels
+  
+      // Make the zoom-out faster if zoomed in deeply, and slower if zoomed out
+      if (currentZoom > 5) {
+        speed = 6; // Faster zoom-out if zoomed in
+        curve = 0.8; // Less curve, more direct
+      } else if (currentZoom <= 5 && currentZoom > 2) {
+        speed = 2.5; // Moderate speed for mid-level zoom
+        curve = 1.2; // Moderate curve for smooth transition
+      } else {
+        speed = 1; // Slower speed for lower zoom levels
+        curve = 1.8; // More gradual zoom-out at low zoom levels
+      }
+  
+      mapRef.current.flyTo({
+        center: initialCenter,
+        zoom: initialZoom,
+        speed: speed, // Dynamically set speed based on current zoom level
+        curve: curve, // Dynamically set curve
+        easing: (t) => t,
+        essential: true,
+      });
+    }
+  };
+
   const getAddressFromCoordinates = async (lng, lat) => {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`;
   
@@ -263,8 +298,8 @@ const MapboxMap = ({ showControls, q_id }) => {
         container: mapContainer.current,
         style: 'mapbox://styles/play2earn/cm1tnpmnd014d01pi7httawcp',
         projection: 'globe',
-        zoom: 1,
-        center: [0, 0],
+        zoom: initialZoom,
+        center: initialCenter,
         minZoom: MIN_ZOOM,
         maxZoom: MAX_ZOOM,
         scrollZoom: false,
@@ -401,6 +436,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       <>
       <SearchBar onSearch={handleSearch} />
       <Taskbar />
+      <ZoomOutButton onZoomReset={handleZoomReset} />
       <GamifiedTaskPopup
         task={selectedTask}
         isStaker={Math.random() > 0.5}
