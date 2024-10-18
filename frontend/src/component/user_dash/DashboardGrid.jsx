@@ -1,9 +1,10 @@
-import React from "react";
+import React, {useState} from "react";
 import profileImage from '/avatar.svg';
 import styles from "./Dashboard.module.css"
 //import CircularProgress from "./CircularProgress";
 import token from "/bitcoin-2207.svg"
 import { Link } from "react-router-dom";
+import History from "./history/History";
 
 
 const DashboardGrid = () => {
@@ -175,13 +176,25 @@ const LevelSection = () => {
 }*/
 
 const HistorySection = () => {
+    const [historyPopUp, setHistoryPopUp] = useState(false);
+    
+    const historyPopUpOpen = () => {
+        setHistoryPopUp(true)
+    };
+
+    const historyPopUpClose = () => {
+        setHistoryPopUp(false)
+    };
     return (
-        <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
-            <span className="text-xl font-bold">History</span>
-            <p>--</p>
-            <button className=" user_dash mr-3 px-1 py-1 bg-[#20C997] rounded-3xl">Stakes</button>
-            <button className=" user_dash px-2 py-1 bg-[#20C997] rounded-3xl">Staking Reward</button>
-        </div>
+        <>
+            <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
+                <span className="text-xl font-bold">History</span>
+                <p>--</p>
+                <button onClick={()=>historyPopUpOpen()} className=" user_dash mr-3 px-1 py-1 bg-[#20C997] rounded-3xl">Stakes</button>
+                {/* <button className=" user_dash px-2 py-1 bg-[#20C997] rounded-3xl">Staking Reward</button> */}
+            </div>
+            <History isOpen={historyPopUp} onClose={() => historyPopUpClose()}/>
+        </>
     )
 }
 

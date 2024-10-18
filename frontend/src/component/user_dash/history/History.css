@@ -1,0 +1,226 @@
+/* Full-page overlay style */
+.history-popup {
+    position: fixed;
+    top: 50px;
+    left: 170px;
+    width: 70vw; /* Full viewport width */
+    height: 70vh; /* Full viewport height */
+    background-color: #0d1b2a; /* Solid dark space background */
+    color: #A0AAB2;
+    padding: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+    animation: fadeIn 0.5s;
+    border: 2px solid #20C777; /* Neon-like glowing border */
+    border-radius: 12px;
+}
+
+/* Prevent the body from scrolling when popup is active */
+body.popup-active {
+    overflow: hidden;
+}
+
+/* Fade-in animation for smooth appearance */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Popup content scrollable */
+.popup-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 40px); /* Adjust height for padding */
+}
+
+/* Glowing header title */
+.header-title {
+    font-size: 38px;
+    color: #F0F2F5;
+    margin-bottom: 15px;
+    font-family: 'Orbitron', sans-serif; /* Futuristic font */
+    letter-spacing: 1.2px;
+    text-align: center;
+    display: inline-block; /* Aligns with the back button */
+    margin-right: 20px; /* Space for the back button */
+}
+
+/* Back button with neon effect now next to the title */
+.back-button {
+    align-self: flex-end;
+    background-color: transparent;
+    border: 2px solid #20C777;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    transform: scale(1.1) rotate(90deg);
+}
+
+.back-button:hover {
+    background-color: rgba(32, 199, 119, 0.2);
+    transform: scale(1.1) rotate(-05deg);
+}
+.back-icon {
+    font-size: 24px;
+    color: #20C777;
+    text-shadow: 0 0 10px rgba(32, 199, 119, 0.8);
+}
+
+/* Glowing effect for the icon */
+.back-button:hover .back-icon {
+    color: #1BAE6E;
+    text-shadow: 0 0 20px rgba(32, 199, 119, 1);
+}
+
+/* Toggle buttons with glowing edges */
+.toggle-buttons {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.toggle-buttons button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    background-color: transparent;
+    border: 2px solid #20C777;
+    border-radius: 8px;
+    color: #20C777;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+
+}
+
+.toggle-buttons button:hover {
+    background-color: rgba(32, 199, 119, 0.4);
+    transform: scale(1.05);
+
+}
+
+.toggle-buttons button.active {
+    background-color: #20C777;
+    color: white;
+
+}
+
+/* Task section with glowing border */
+.answered-tasks, .released-tasks {
+    margin-top: 20px;
+}
+
+.answered-tasks-table, .released-tasks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.answered-tasks-table th, .released-tasks-table th,
+.answered-tasks-table td, .released-tasks-table td {
+    border: 1px solid #20C777;
+    padding: 10px;
+    text-align: left;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.answered-tasks-table th, .released-tasks-table th {
+    background-color: #0d1b2a;
+    color: #F0F2F5;
+
+}
+
+.answered-tasks-table tbody tr:hover, .released-tasks-table tbody tr:hover {
+    background-color: rgba(32, 199, 119, 0.2);
+}
+
+/* View statistics button with neon glow */
+.view-statistics-button {
+    background-color: #20C777;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-right: -140px;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    font-size: 16px;
+}
+
+.view-statistics-button:hover {
+    background-color: #1BAE6E;
+    transform: scale(1.08);
+}
+
+/* Animated stars background */
+
+
+@keyframes animateStars {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-1000px); /* Slow scroll effect */
+    }
+}
+
+/* Additional decorative stars */
+
+
+/* Curving lines added to the background */
+.history-popup::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: radial-gradient(circle, rgba(13, 27, 42, 1) 0%, rgba(13, 27, 42, 0) 70%);
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.history-popup::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+/* Curved line animation */
+@keyframes animateCurves {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(45deg) scale(1.1);
+    }
+    100% {
+        transform: rotate(0deg) scale(1);
+}
+}
