@@ -5,3 +5,7 @@
 ::-webkit-scrollbar-thumb{
     color: aqua;
 }
+
+.seleceted{
+    background-color: rgb(100, 116, 139);
+}

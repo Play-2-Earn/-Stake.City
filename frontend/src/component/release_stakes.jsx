@@ -119,113 +119,114 @@ const ReleaseStake = () => {
                 }
             ]
         },
-        // {
-        //     username: "Artist123",
-        //     stake: "Techniques for blending colors in digital art, especially for realistic portraits?",
-        //     staking_reward: "220",
-        //     time_left: "2hr30min",
-        //     answers: [
-        //         {
-        //             username: "ArtWizard",
-        //             response: "Use soft round brushes with low opacity and build up the colors gradually. Smudge tools and layer modes like 'Multiply' and 'Overlay' are also helpful."
-        //         },
-        //         {
-        //             username: "DigitalPainter",
-        //             response: "Work on separate layers for skin tones, shadows, and highlights. Adjust the opacity for a smooth blend without losing detail."
-        //         },
-        //         {
-        //             username: "ColorBlender",
-        //             response: "Utilize gradient maps for creating smooth transitions between colors. Experiment with different brush textures for more realistic skin."
-        //         }
-        //     ]
-        // },
-        // {
-        //     username: "NatureFan",
-        //     stake: "Best spots for hiking in the Rockies, with scenic views?",
-        //     staking_reward: "350",
-        //     time_left: "4hr25min",
-        //     answers: [
-        //         {
-        //             username: "TrailBlazer",
-        //             response: "Check out Trail Ridge Road in Rocky Mountain National Park and Emerald Lake Trail. Both offer stunning alpine scenery and varied wildlife."
-        //         },
-        //         {
-        //             username: "MountainExplorer",
-        //             response: "Try Grays and Torreys Peaks if you're up for a challenge. They offer breathtaking summit views and are perfect for experienced hikers."
-        //         },
-        //         {
-        //             username: "NatureGuide",
-        //             response: "The Maroon Bells are a must-see. The hike is moderate but provides incredible photo opportunities and mountain reflections."
-        //         }
-        //     ]
-        // },
-        // {
-        //     username: "BookWorm",
-        //     stake: "What are some must-read fantasy novels, particularly with strong world-building?",
-        //     staking_reward: "500",
-        //     time_left: "1hr55min",
-        //     answers: [
-        //         {
-        //             username: "StorySeeker",
-        //             response: "'The Lord of the Rings', 'A Song of Ice and Fire', and 'The Name of the Wind' are excellent choices for immersive worlds. Try 'Mistborn' and 'The Wheel of Time' as well."
-        //         },
-        //         {
-        //             username: "FantasyFanatic",
-        //             response: "'The Stormlight Archive' series is fantastic for epic storytelling, and 'The Broken Empire' series has a unique dark fantasy setting."
-        //         },
-        //         {
-        //             username: "NovelLover",
-        //             response: "Don't miss 'The Witcher' series for its unique folklore elements and 'The First Law' trilogy for a gritty and realistic approach to fantasy."
-        //         }
-        //     ]
-        // },
-        // {
-        //     username: "TechieJoe",
-        //     stake: "How to set up a home server, with a focus on media streaming?",
-        //     staking_reward: "600",
-        //     time_left: "2hr45min",
-        //     answers: [
-        //         {
-        //             username: "ServerGuru",
-        //             response: "Use software like Plex or Jellyfin for media streaming. Make sure your home server has a strong CPU and adequate storage, and connect it to your home network via Ethernet for better speed."
-        //         },
-        //         {
-        //             username: "TechMaster",
-        //             response: "Try using Unraid or FreeNAS as your server OS for flexibility. Also, set up RAID for better data protection and access speed."
-        //         },
-        //         {
-        //             username: "MediaSetupPro",
-        //             response: "If you're new, start with a Raspberry Pi running Kodi. It’s a budget-friendly way to set up a basic media server with decent streaming quality."
-        //         }
-        //     ]
-        // },
-        // {
-        //     username: "ScienceGeek",
-        //     stake: "Easiest way to understand quantum mechanics, for beginners?",
-        //     staking_reward: "700",
-        //     time_left: "5hr35min",
-        //     answers: [
-        //         {
-        //             username: "PhysicsNerd",
-        //             response: "Start with the double-slit experiment to understand wave-particle duality. Books like 'Quantum Mechanics: The Theoretical Minimum' are great for beginners."
-        //         },
-        //         {
-        //             username: "ScienceTutor",
-        //             response: "Watch YouTube channels like 'PBS Space Time' or 'Veritasium' for visual explanations. They simplify complex concepts into digestible lessons."
-        //         },
-        //         {
-        //             username: "QuantumEnthusiast",
-        //             response: "Explore the basics through online courses like those on Coursera or Khan Academy. These platforms offer step-by-step lessons suited for beginners."
-        //         }
-        //     ]
-        // }
+        {
+            username: "Artist123",
+            stake: "Techniques for blending colors in digital art, especially for realistic portraits?",
+            staking_reward: "220",
+            time_left: "2hr30min",
+            answers: [
+                {
+                    username: "ArtWizard",
+                    response: "Use soft round brushes with low opacity and build up the colors gradually. Smudge tools and layer modes like 'Multiply' and 'Overlay' are also helpful."
+                },
+                {
+                    username: "DigitalPainter",
+                    response: "Work on separate layers for skin tones, shadows, and highlights. Adjust the opacity for a smooth blend without losing detail."
+                },
+                {
+                    username: "ColorBlender",
+                    response: "Utilize gradient maps for creating smooth transitions between colors. Experiment with different brush textures for more realistic skin."
+                }
+            ]
+        },
+        {
+            username: "NatureFan",
+            stake: "Best spots for hiking in the Rockies, with scenic views?",
+            staking_reward: "350",
+            time_left: "4hr25min",
+            answers: [
+                {
+                    username: "TrailBlazer",
+                    response: "Check out Trail Ridge Road in Rocky Mountain National Park and Emerald Lake Trail. Both offer stunning alpine scenery and varied wildlife."
+                },
+                {
+                    username: "MountainExplorer",
+                    response: "Try Grays and Torreys Peaks if you're up for a challenge. They offer breathtaking summit views and are perfect for experienced hikers."
+                },
+                {
+                    username: "NatureGuide",
+                    response: "The Maroon Bells are a must-see. The hike is moderate but provides incredible photo opportunities and mountain reflections."
+                }
+            ]
+        },
+        {
+            username: "BookWorm",
+            stake: "What are some must-read fantasy novels, particularly with strong world-building?",
+            staking_reward: "500",
+            time_left: "1hr55min",
+            answers: [
+                {
+                    username: "StorySeeker",
+                    response: "'The Lord of the Rings', 'A Song of Ice and Fire', and 'The Name of the Wind' are excellent choices for immersive worlds. Try 'Mistborn' and 'The Wheel of Time' as well."
+                },
+                {
+                    username: "FantasyFanatic",
+                    response: "'The Stormlight Archive' series is fantastic for epic storytelling, and 'The Broken Empire' series has a unique dark fantasy setting."
+                },
+                {
+                    username: "NovelLover",
+                    response: "Don't miss 'The Witcher' series for its unique folklore elements and 'The First Law' trilogy for a gritty and realistic approach to fantasy."
+                }
+            ]
+        },
+        {
+            username: "TechieJoe",
+            stake: "How to set up a home server, with a focus on media streaming?",
+            staking_reward: "600",
+            time_left: "2hr45min",
+            answers: [
+                {
+                    username: "ServerGuru",
+                    response: "Use software like Plex or Jellyfin for media streaming. Make sure your home server has a strong CPU and adequate storage, and connect it to your home network via Ethernet for better speed."
+                },
+                {
+                    username: "TechMaster",
+                    response: "Try using Unraid or FreeNAS as your server OS for flexibility. Also, set up RAID for better data protection and access speed."
+                },
+                {
+                    username: "MediaSetupPro",
+                    response: "If you're new, start with a Raspberry Pi running Kodi. It’s a budget-friendly way to set up a basic media server with decent streaming quality."
+                }
+            ]
+        },
+        {
+            username: "ScienceGeek",
+            stake: "Easiest way to understand quantum mechanics, for beginners?",
+            staking_reward: "700",
+            time_left: "5hr35min",
+            answers: [
+                {
+                    username: "PhysicsNerd",
+                    response: "Start with the double-slit experiment to understand wave-particle duality. Books like 'Quantum Mechanics: The Theoretical Minimum' are great for beginners."
+                },
+                {
+                    username: "ScienceTutor",
+                    response: "Watch YouTube channels like 'PBS Space Time' or 'Veritasium' for visual explanations. They simplify complex concepts into digestible lessons."
+                },
+                {
+                    username: "QuantumEnthusiast",
+                    response: "Explore the basics through online courses like those on Coursera or Khan Academy. These platforms offer step-by-step lessons suited for beginners."
+                }
+            ]
+        }
     ];
 
-    const [currentPageNum, setCurrentPageNum] = useState(1);
 
     const [releasePopup, setReleaseTaskPopup] = useState(false)
 
     const [selectedItem, setSelectedItem] = useState(null)
+
+    const [currentPageNum, setCurrentPageNum] = useState(1);
 
     const cellPerPage = 5;
 
@@ -238,17 +239,27 @@ const ReleaseStake = () => {
     const currentPageItems = stakes.splice(indexOfFirstEle, indexOfLastEle)
 
     const nextPage = () => {
-        setCurrentPageNum(currentPageNum + 1);
+        if (currentPageNum === totPages) {
+            alert("You are already on the last page.")
+        }
+        else {
+            setCurrentPageNum(currentPageNum + 1);
+        }
     }
 
     const prePage = () => {
-        setCurrentPageNum(currentPageNum - 1);
+        if (currentPageNum === 1) {
+            alert("You are already on the first page..")
+        }
+        else {
+            setCurrentPageNum(currentPageNum - 1);
+        }
     }
 
     const taskPoupOpen = (stake, staking_reward, time_left, answers) => {
         setReleaseTaskPopup(true);
 
-        const clickedItem = [ stake, staking_reward, time_left, answers];
+        const clickedItem = [stake, staking_reward, time_left, answers];
 
         setSelectedItem(clickedItem);
     }
@@ -275,7 +286,6 @@ const ReleaseStake = () => {
                             {currentPageItems.map(({ stake, staking_reward, time_left, answers }, index) => (
                                 <tr className="text-center hover:bg-slate-600">
                                     <td className=" text-slate-400">{index + 1}</td>
-                                    {/* <td className=" text-slate-400">{username}</td> */}
                                     <td className=" text-slate-400">{stake}</td>
                                     <td className=" text-slate-400">{staking_reward}</td>
                                     <td className=" text-slate-400">{time_left}</td>
@@ -288,8 +298,8 @@ const ReleaseStake = () => {
                     </table>
                 </div>
                 <div className="mt-2">
-                    <button onClick={() => nextPage()} className="rounded-3xl bg-emerald-400 py-1 px-2 text-sm shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out"  >Previous</button>
-                    <button onClick={() => prePage()} className="rounded-3xl bg-emerald-400 py-1 px-2 text-sm shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >next</button>
+                    <button onClick={() => prePage()} className="rounded-3xl bg-emerald-400 py-1 px-2 text-sm shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out"  >Previous</button>
+                    <button onClick={() => nextPage()} className="rounded-3xl bg-emerald-400 py-1 px-2 text-sm shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >next</button>
                 </div>
             </div>
             <Footer />

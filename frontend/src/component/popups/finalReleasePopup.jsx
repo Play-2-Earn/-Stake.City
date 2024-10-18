@@ -6,13 +6,9 @@ import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
 
 const FinalReleasePopup = ({ isOpen, onClose, ValuesForFinalCheck, afterFinalResponse }) => {
-    const [ReleaseStakes, setReleaseStakes] = useState("")
-
-    const acceptRelease = () => {
-        alert("Stakes are being sent!")
-        onClose()
-    }
-
+    // const [ReleaseStakes, setReleaseStakes] = useState("")
+    console.log(ValuesForFinalCheck)
+    const [user1, user2, user3] = ValuesForFinalCheck
     if (!isOpen) return null;
     return (
         <AnimatePresence>
@@ -57,7 +53,7 @@ const FinalReleasePopup = ({ isOpen, onClose, ValuesForFinalCheck, afterFinalRes
 
                     <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
 
-                        <p>Do you want to release the stakes to {ValuesForFinalCheck}?</p>
+                        <p>Do you want to release the stakes to {user1}, {user2}, {user3}?</p>
                         <div className="flex flex-row justify-evenly">
                             <Button onClick={afterFinalResponse} className="bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
                                 Yes

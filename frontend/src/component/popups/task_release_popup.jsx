@@ -8,22 +8,42 @@ import FinalReleasePopup from "./finalReleasePopup";
 const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
     if (!isOpen) return (null);
     const [finalReleasePopup, setFinalReleasePopup] = useState(false);
-    const [ValuesForFinalCheck, setValuesForFinalCheck] = useState(null);
+    // const [ValuesForFinalCheck, setValuesForFinalCheck] = useState(null);
+    const selectedUsers = [];
+
+    const [selectedUser, setSelectedUser] = useState(selectedUsers);
 
     const finalTaskReleasePopUpClose = () => {
         setFinalReleasePopup(false);
+        // deselecting all the users
+        for (let i = 0; i = selectedUser.length; i++) {
+            selectedUser.pop();
+        }
+    }
+
+    const addingSelectedUsers = (username) => {
+        selectedUser.push(username)
+
     }
 
     const finalTaskReleasePopUpOpen = (username) => {
-        setValuesForFinalCheck(username);
-        setFinalReleasePopup(true);
+        addingSelectedUsers(username)
+        setSelectedUser(selectedUser)
+        console.log(selectedUser.length)
+
+        if (selectedUser.length === 3) {
+            setFinalReleasePopup(true);
+        }
+
     }
 
-    const afterFinalResponse = ()=>{
+    const afterFinalResponse = () => {
         setFinalReleasePopup(false)
         onClose()
         alert("The stakes are being released.")
+        finalTaskReleasePopUpClose()
     }
+
     return (
         <>
             <AnimatePresence>
@@ -83,7 +103,7 @@ const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
                                     <p className="mb-2">Select the best responser from below to release stake.</p>
                                     <div className=" overflow-y-scroll h-44 release_pop_up_scroll">
                                         {displayDetails[3].map(({ username, response }, index) => (
-                                            <p onClick={() => finalTaskReleasePopUpOpen(username)} className=" mt-3 hover:bg-slate-500 rounded-lg px-3 py-2 cursor-pointer">{index + 1}. {username} : {response} </p>
+                                            <p onClick={() => finalTaskReleasePopUpOpen(username)} className="mt-3 hover:bg-slate-500 rounded-lg px-3 py-2 cursor-pointe">{index + 1}. {username} : {response} </p>
                                         ))}
                                     </div>
                                 </div>
@@ -99,7 +119,7 @@ const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
                     </motion.div>
                 </motion.div>
             </AnimatePresence>
-        <FinalReleasePopup isOpen={finalReleasePopup} onClose={finalTaskReleasePopUpClose} afterFinalResponse={afterFinalResponse} ValuesForFinalCheck={ValuesForFinalCheck}/>
+            <FinalReleasePopup isOpen={finalReleasePopup} onClose={finalTaskReleasePopUpClose} afterFinalResponse={afterFinalResponse} ValuesForFinalCheck={selectedUser} />
         </>
     )
 }
