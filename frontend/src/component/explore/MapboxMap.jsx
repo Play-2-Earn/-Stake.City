@@ -421,6 +421,8 @@ const MapboxMap = ({ showControls, q_id }) => {
   const { lng, lat } = longLat || {};
   return (
     <div>
+      <div class="top-rectangle" />
+      <div class="bottom-rectangle" />
       {/* User info should always be visible */}
       <UserInfo user={sampleUser} />
       <div

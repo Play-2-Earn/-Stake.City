@@ -1,6 +1,6 @@
 .search-bar-container {
     position: absolute;
-    bottom: 10%;
+    bottom: 14%;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
@@ -34,9 +34,15 @@
     border-radius: 36px;
     cursor: pointer;
     transition: transform 0.3s ease;
-    transform: translateX(-115px);
+    transform: translateX(-180%);
+    box-shadow: inset 0 -10px 0px rgba(0, 0, 0, 0.15), 0 5px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   
+  .search-bar-button:hover {
+    box-shadow: inset 0 -5px 0px rgba(0, 0, 0, 0.25), 0 2px 2px rgba(0, 0, 0, 0.75);
+  }
+
   .search-bar-visible .search-bar-button {
     transform: translateX(5px);
   }

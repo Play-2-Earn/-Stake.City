@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../styles/searchbar.css'; // Import the CSS file
 
 const SearchBar = ({ onSearch }) => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const inputRef = useRef(null); // Reference for input field
 
   const toggleSearchBar = () => {
     if (isSearchBarVisible) {
@@ -16,6 +17,12 @@ const SearchBar = ({ onSearch }) => {
       setIsSearchBarVisible(true);
     }
   };
+
+  useEffect(() => {
+    if (isSearchBarVisible && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isSearchBarVisible]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -40,6 +47,7 @@ const SearchBar = ({ onSearch }) => {
     <div className={`search-bar-container ${isSearchBarVisible ? 'search-bar-visible' : ''}`}>
       <input
         type="text"
+        ref={inputRef}
         value={searchQuery}
         onChange={handleSearchChange}
         onKeyDown={handleKeyPress}

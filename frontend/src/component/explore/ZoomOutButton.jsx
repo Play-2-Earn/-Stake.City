@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/zoomOutButton.css'; // Import the CSS for the button
+import '../styles/zoomoutbutton.css';
 
 const ZoomOutButton = ({ onZoomReset }) => {
   return (
