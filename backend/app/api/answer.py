@@ -167,6 +167,7 @@ def get_answers():
         }), 200
 
     except Exception as e:
+        print("ERROR: ", str(e))
         return jsonify({"message": str(e)}), 500
 # Report an answer
 @answer_bp.route('/api/report_answer/<answer_id>', methods=['POST'])

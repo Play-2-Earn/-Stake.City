@@ -11,6 +11,7 @@ import ZoomOutButton from './ZoomOutButton';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
+import { Avatar } from '@radix-ui/react-avatar';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -32,7 +33,27 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [allTasks, setAllTasks] = useState([]);
   const [isLink, setIsLink] = useState(false);
   const markers = useRef([]);
-
+  const [sampleUser, setSampleUser] = useState(null);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await fetch('http://localhost:5000/api/user_dashboard', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`,
+        },
+      });
+      let data = await response.json();
+      data = {
+        ...data,
+      avatar: '/avatar.svg',
+      };
+      console.log(data);
+      setSampleUser(data);
+    };
+    fetchUser();
+  }, []);
+  
   // Fetch locations from the backend when the component mounts
   useEffect(() => {
     if (q_id) {
@@ -100,12 +121,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     stakeAmount: 1000,
   };
 
-  const sampleUser = {
-    name: "Eco Warrior Alice",
-    id: "hero123",
-    level: 42,
-    avatar: "/avatar.svg",
-  };
+  
 
   // UI button handling functions
 

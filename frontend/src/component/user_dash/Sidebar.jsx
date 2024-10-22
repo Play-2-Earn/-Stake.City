@@ -32,7 +32,13 @@ export default function Sidebar({ isSidebarOpen }) {
                 {DASHBOARD_SIDEBAR_BOTTOM_LINKS.map((item) => (
                     <SidebarLink key={item.key} item={item} />
                 ))}
-                <div className={classNames('text-red-500', linkClasses)}>
+                <div
+                    className={classNames("text-red-500", linkClasses)}
+                    onClick={() => {
+                        sessionStorage.removeItem("jwtToken");
+                        window.location.href = "/";
+                    }}
+                >
                     <span className="text-xl"><HiOutlineLogout /></span>
                     Logout
                 </div>

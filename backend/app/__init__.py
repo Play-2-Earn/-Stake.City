@@ -20,7 +20,7 @@ def create_app():
     mail = Mail(app)
     app.secret_key = os.getenv('SECRET_KEY')
 
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, supports_credentials=True ,resources={r"/*": {"origins": "http://localhost:5173", "allow_headers": ["Authorization", "Content-Type"]}})
 
     # Register blueprints
     from .api.Register import register_bp
@@ -28,12 +28,14 @@ def create_app():
     from .api.Reset import reset_password_bp
     from .api.question import question_bp
     from .api.answer import answer_bp
+    from .api.User_dash import dashboard_bp
 
     app.register_blueprint(register_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(reset_password_bp)
     app.register_blueprint(question_bp)
     app.register_blueprint(answer_bp)
+    app.register_blueprint(dashboard_bp)
 
 
     return app

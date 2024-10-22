@@ -1,13 +1,17 @@
 import React, { Fragment } from 'react'
 import { Menu, Popover, Transition } from '@headlessui/react'
 import { HiOutlineBell, HiOutlineSearch, HiOutlineChatAlt } from 'react-icons/hi'
-//import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import classNames from 'classnames'
 import profileImage from '/avatar.svg';
-  
-export default function DashboardHeader({toggleSidebar}) {
-    //const navigate = useNavigate()
 
+export default function DashboardHeader({toggleSidebar}) {
+    const navigate = useNavigate()
+	
+	const handleSignOut = () => {
+		sessionStorage.removeItem('jwtToken')
+		navigate('/')
+	}
     return (
         <div className="bg-[#0D1B2A] h-14 px-4 flex justify-between items-center ">
             <div className="relative w-full sm:w-[24rem] mr-2">
@@ -93,7 +97,7 @@ export default function DashboardHeader({toggleSidebar}) {
 							</div>
 						</Menu.Button>
 					</div>
-					{/*<Transition
+					<Transition
 						as={Fragment}
 						enter="transition ease-out duration-100"
 						enterFrom="transform opacity-0 scale-95"
@@ -131,7 +135,10 @@ export default function DashboardHeader({toggleSidebar}) {
 							</Menu.Item>
 							<Menu.Item>
 								{({ active }) => (
+									<Menu.Item>
+								{({ active }) => (
 									<div
+										onClick={() => handleSignOut()}
 										className={classNames(
 											active && 'bg-[#A0AAB2]',
 											'active:bg-[#A0AAB2] rounded-sm px-4 py-2 text-[#F0F3F5] cursor-pointer focus:bg-[#A0AAB2]'
@@ -141,8 +148,10 @@ export default function DashboardHeader({toggleSidebar}) {
 									</div>
 								)}
 							</Menu.Item>
+								)}
+							</Menu.Item>
 						</Menu.Items>
-					</Transition>*/}
+					</Transition>
 				</Menu>
             </div>
         </div>
