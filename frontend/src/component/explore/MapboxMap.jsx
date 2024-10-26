@@ -140,9 +140,12 @@ const MapboxMap = ({ showControls, q_id }) => {
       if (mapRef.current) {
         mapRef.current.flyTo({
           center,
-          zoom: 10,
-          speed: 1.5,
-          curve: 1.2,
+          zoom: 16,
+          pitch: 60,
+          bearing: -30,
+          speed: 2,
+          curve: 1.5,
+          easing: (t) => t,
           essential: true, // this ensures that the animation is performed
         });
       }
@@ -278,6 +281,8 @@ const MapboxMap = ({ showControls, q_id }) => {
       mapRef.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
+        pitch: 0,
+        bearing: 0,
         speed: speed, // Dynamically set speed based on current zoom level
         curve: curve, // Dynamically set curve
         easing: (t) => t,
