@@ -100,8 +100,9 @@ def register():
     if User.objects(email=email).first() or User.objects(user_name=user_name).first():
         return jsonify({"error": "Email or username is already registered."}), 400
 
+    # remove the hashing for now (mit prajapati) 
     # Hash the password
-    hashed_password = generate_password_hash(password)
+    # hashed_password = generate_password_hash(password)
 
     # Prepare user data
     new_user = User(
@@ -109,7 +110,7 @@ def register():
         full_name=full_name,
         age=age,
         gender=gender,
-        password=hashed_password,
+        password=password,
         email=email,
         mobile=mobile,
         terms_accepted=terms_accepted
