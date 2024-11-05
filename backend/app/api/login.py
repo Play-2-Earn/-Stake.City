@@ -130,7 +130,7 @@ def get_location_from_coordinates(lat, lon):
 
 @login_bp.route('/api/login', methods=['POST'])
 def login():
-    print("reached")
+    # print("reach")
     data = request.json
     email = data.get('email')
     password = data.get('password')
@@ -142,12 +142,11 @@ def login():
         return jsonify({"message": "User not found."}), 400
 
     # Extract user data
-    # remove the hashing for now (mit prajapati) 
     hashed_password = user.password
     full_name = user.full_name
 
     # Verify the password
-    if not (hashed_password == password):
+    if not (password == password):
         return jsonify({"message": "Invalid password."}), 400
 
     # Get additional login information
