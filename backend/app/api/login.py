@@ -130,7 +130,6 @@ def get_location_from_coordinates(lat, lon):
 
 @login_bp.route('/api/login', methods=['POST'])
 def login():
-    # print("reach")
     data = request.json
     email = data.get('email')
     password = data.get('password')
