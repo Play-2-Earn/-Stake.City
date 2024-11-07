@@ -11,7 +11,14 @@ const FinalReleasePopup = ({ isOpen, onClose, ValuesForFinalCheck, afterFinalRes
     const [user1, user2, user3] = ValuesForFinalCheck
     const onConfirm = () => {
         console.log(user1, user2, user3, Task)
-        fetch('http://localhost:5000/api/select_answers', {
+
+        //  mit prajapati (development and production link support)
+        const API_BASE_URL =
+            process.env.NODE_ENV === "development"
+                ? "http://localhost:5000"
+                : process.env.Deployed_link;  
+
+        fetch(`${API_BASE_URL}/api/select_answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

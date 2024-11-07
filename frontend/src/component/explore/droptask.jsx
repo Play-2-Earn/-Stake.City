@@ -15,8 +15,8 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
   const [isSuccess, setIsSuccess] = useState(false);
   const [isTransactionPopupOpen, setIsTransactionPopupOpen] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState({
-    stakeAmount: "0", 
-    gasFee: "5",       
+    stakeAmount: "0",
+    gasFee: "5",
   });
   const handleYes = () => {
     setStep(1);
@@ -33,7 +33,14 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
     try {
       const jwtToken = sessionStorage.getItem("jwtToken");
       console.log(jwtToken);
-      const response = await fetch('http://localhost:5000/api/drop_task', {
+
+      //  mit prajapati (development and production link support)
+      const API_BASE_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000"
+          : process.env.Deployed_link;
+
+      const response = await fetch(`${API_BASE_URL}/api/drop_task`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,8 +137,8 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
                   {step === 0
                     ? "New Task"
                     : step === 1
-                    ? "Task Details"
-                    : "Success!"}
+                      ? "Task Details"
+                      : "Success!"}
                 </h2>
                 <Button
                   variant="ghost"
@@ -179,14 +186,14 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
               {step === 1 && (
                 <div className="space-y-4">
                   <div>
-                  <label
+                    <label
                       htmlFor="task-description"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       Task Title
                     </label>
                     <Input
-                      style={{color: "black"}}
+                      style={{ color: "black" }}
                       id="task-title"
                       value={taskTitle}
                       onChange={(e) => setTaskTitle(e.target.value)}
@@ -200,7 +207,7 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
                       Task Description
                     </label>
                     <Textarea
-                      style={{color: "black"}}
+                      style={{ color: "black" }}
                       id="task-description"
                       value={taskDescription}
                       onChange={(e) => setTaskDescription(e.target.value)}
@@ -218,7 +225,7 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
                     </label>
                     <div className="relative">
                       <Input
-                      style={{color: "black"}}
+                        style={{ color: "black" }}
                         id="stake-amount"
                         type="number"
                         value={stakeAmount}
@@ -238,9 +245,8 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
                   <Button
                     onClick={openStakingModal}
                     disabled={!taskDescription || !stakeAmount || isLoading}
-                    className={`w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full text-lg transform hover:scale-105 transition-all duration-200 ${
-                      isLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={`w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full text-lg transform hover:scale-105 transition-all duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     style={{ boxShadow: "0 4px 0 #2563EB" }}
                   >
                     {isLoading ? (

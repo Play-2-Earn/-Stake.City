@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import profileImage from '/avatar.svg';
 import styles from "./Dashboard.module.css"
 //import CircularProgress from "./CircularProgress";
@@ -12,7 +12,7 @@ const DashboardGrid = () => {
 
     useEffect(() => {
         if (!sessionStorage.getItem('jwtToken')) {
-            
+
             alert("Please login first");
             window.location.href = '/';
         }
@@ -21,7 +21,14 @@ const DashboardGrid = () => {
         const fetchProfile = async () => {
             try {
                 const token = sessionStorage.getItem('jwtToken');
-                const response = await fetch('http://localhost:5000/api/user_dashboard', {
+
+                //  mit prajapati (development and production link support)
+                const API_BASE_URL =
+                    process.env.NODE_ENV === "development"
+                        ? "http://localhost:5000"
+                        : process.env.Deployed_link;
+
+                const response = await fetch(`${API_BASE_URL}/api/user_dashboard`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -36,17 +43,17 @@ const DashboardGrid = () => {
 
         fetchProfile();
     }, []);
-    
+
     return (
         <div className={` h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 p-6 text-white min-h-screen ${styles.dashback} ${styles.starAnimation}`}>
             {/* Row 1 */}
             <div className="col-span-1">
                 {/* Profile Column */}
-                <ProfileSection profile={profile}/>
+                <ProfileSection profile={profile} />
             </div>
             <div className="col-span-1">
                 {/* Points Section */}
-                <PointsSection profile={profile}/>
+                <PointsSection profile={profile} />
             </div>
             <div className="col-span-1">
                 {/* History Section */}
@@ -67,10 +74,10 @@ const DashboardGrid = () => {
     )
 }
 
-const ProfileSection = ({profile}) => {
-    
+const ProfileSection = ({ profile }) => {
+
     //const navigate = useNavigate();
-    
+
     return (
         <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] text-center ${styles.float} size-full`}>
             <span className="text-[#F0F3F5] text-xl font-bold">Profile</span>
@@ -139,40 +146,40 @@ const ActiveStakesSection = () => {
     return (
         <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
             <span className="text-lg font-semibold">Active Stakes</span>
-        <div className="divide-y divide-[#A0AAB2]">
-        
-        {activeStakes.length > 0 ? activeStakes.map(({ stake, stakeDetails, staking_reward, time_left }, index) => (
-            <div>
-            <div className="flex justify-between py-3 text-sm font-semibold text-[#F0F2F5]">
-            <div className="flex-1">Stake</div>
-            <div className="flex-1">Details</div>
-            <div className="flex-1 text-center">Reward</div>
-            <div className="flex-1 text-right">Time Left</div>
+            <div className="divide-y divide-[#A0AAB2]">
+
+                {activeStakes.length > 0 ? activeStakes.map(({ stake, stakeDetails, staking_reward, time_left }, index) => (
+                    <div>
+                        <div className="flex justify-between py-3 text-sm font-semibold text-[#F0F2F5]">
+                            <div className="flex-1">Stake</div>
+                            <div className="flex-1">Details</div>
+                            <div className="flex-1 text-center">Reward</div>
+                            <div className="flex-1 text-right">Time Left</div>
+                        </div>
+                        <div
+                            key={index}
+                            className="flex items-center justify-between pb-3 pt-3 last:pb-0"
+                        >
+                            <div className="flex-1">
+                                {stake}
+                            </div>
+                            <div className="flex-1">
+                                {stakeDetails}
+                            </div>
+                            <div className="flex-1 text-center">
+                                {staking_reward}
+                            </div>
+                            <div className="flex-1 text-right">
+                                {time_left}
+                            </div>
+                        </div>
+                    </div>
+                )) : (
+                    <div>
+                        <Link to="/explore" className="text-[#20C997] font-semibold">No active stakes. Click here to create a task!</Link>
+                    </div>
+                )}
             </div>
-            <div
-                key={index}
-                className="flex items-center justify-between pb-3 pt-3 last:pb-0"
-            >
-                <div className="flex-1">
-                    {stake}
-                </div>
-                <div className="flex-1">
-                    {stakeDetails}
-                </div>
-                <div className="flex-1 text-center">
-                    {staking_reward}
-                </div>
-                <div className="flex-1 text-right">
-                    {time_left}
-                </div>
-            </div>
-            </div>
-        )):(
-            <div>
-                <Link to="/explore" className="text-[#20C997] font-semibold">No active stakes. Click here to create a task!</Link>
-            </div>
-        )}
-    </div>
 
             <Link to="/releaseStake"> <button className=" mt-6 rounded-3xl mr-4 px-4 bg-emerald-400 py-2 shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out" >Release stakes </button></Link>
         </div>
@@ -203,7 +210,7 @@ const PointsSection = () => {
     )
 }
 
-const LevelSection = ({profile}) => {
+const LevelSection = ({ profile }) => {
     return (
         <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] justify-items-center ${styles.float} size-full`}>
             <span className="text-lg font-semibold">My Level</span>
@@ -241,7 +248,7 @@ const LevelSection = ({profile}) => {
 
 const HistorySection = () => {
     const [historyPopUp, setHistoryPopUp] = useState(false);
-    
+
     const historyPopUpOpen = () => {
         setHistoryPopUp(true)
     };
@@ -254,10 +261,10 @@ const HistorySection = () => {
             <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
                 <span className="text-xl font-bold">History</span>
                 <p>--</p>
-                <button onClick={()=>historyPopUpOpen()} className=" user_dash mr-3 px-1 py-1 bg-[#20C997] rounded-3xl">Stakes</button>
+                <button onClick={() => historyPopUpOpen()} className=" user_dash mr-3 px-1 py-1 bg-[#20C997] rounded-3xl">Stakes</button>
                 {/* <button className=" user_dash px-2 py-1 bg-[#20C997] rounded-3xl">Staking Reward</button> */}
             </div>
-            <History isOpen={historyPopUp} onClose={() => historyPopUpClose()}/>
+            <History isOpen={historyPopUp} onClose={() => historyPopUpClose()} />
         </>
     )
 }

@@ -35,7 +35,14 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
     const token = sessionStorage.getItem("jwtToken");
 
     if (task) {
-      fetch(`http://localhost:5000/api/get_answers?question_id=${task.question_id}`, {
+
+      //  mit prajapati (development and production link support)
+      const API_BASE_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000"
+          : process.env.Deployed_link;
+
+      fetch(`${API_BASE_URL}/api/get_answers?question_id=${task.question_id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -45,7 +52,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         .then((res) => res.json())
         .then((data) => {
           if (data.message === "Answers fetched successfully!") {
-            setChatHistory({"answers":data.answers, "question_id": task.question_id});
+            setChatHistory({ "answers": data.answers, "question_id": task.question_id });
           } else {
             alert(data.message);
           }
@@ -57,9 +64,9 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
   }, [task]);
   const handleSendMessage = () => {
     const token = sessionStorage.getItem("jwtToken");
-    
+
     if (chatMessage.trim()) {
-      fetch("http://localhost:5000/api/post_answer", {
+      fetch(`${API_BASE_URL}/api/post_answer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +81,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         .then((res) => res.json())
         .then((data) => {
           if (data.message === "Answers fetched successfully!") {
-            setChatHistory({"answers":data.answers, "question_id": task.question_id});
+            setChatHistory({ "answers": data.answers, "question_id": task.question_id });
             setChatMessage("");
           } else {
             alert(data.message);
@@ -83,10 +90,10 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         .catch((err) => {
           console.error(err);
         });
-      
+
     }
   };
-  const handleShare= () => {
+  const handleShare = () => {
     if (task.share_url) {
       navigator.clipboard.writeText(task.share_url).then(() => {
         alert("Share URL copied to clipboard!");
@@ -103,7 +110,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
   };
 
   const handleLike = (answer_id, index) => {
-    fetch(`http://localhost:5000/api/like_answer/${answer_id}`, {
+    fetch(`${API_BASE_URL}/api/like_answer/${answer_id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -120,7 +127,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
             ...updatedHistory[index],
             likes: [...updatedHistory[index].likes, task.user_name],
           };
-          setChatHistory({"answers":updatedHistory, "question_id": task.question_id});
+          setChatHistory({ "answers": updatedHistory, "question_id": task.question_id });
         } else {
           alert(data.message);
         }
@@ -252,8 +259,8 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                       size="icon"
                       className="text-green-500 hover:text-green-700 transition-colors duration-200"
                     >
-                      <Share2 className="w-5 h-5" 
-                      onClick={handleShare}/>
+                      <Share2 className="w-5 h-5"
+                        onClick={handleShare} />
                     </Button>
                     <Button
                       variant="ghost"
@@ -284,58 +291,59 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                 </h4>
                 <div
                   className="overflow-y-auto mb-3 p-3 bg-blue-50 rounded-xl border-2 border-blue-200"
-                  style={{ height: "calc(100% - 4rem)",
+                  style={{
+                    height: "calc(100% - 4rem)",
                     overflowY: "scroll",
                     maxHeight: "180px",
-                   }}
+                  }}
                 >
                   {chatHistory !== null && chatHistory.question_id === task.question_id && chatHistory.answers
                     .map((chat, index) => (
-                    <motion.div
-                      key={index}
-                      className="text-xs md:text-sm mb-3 flex justify-between items-center bg-white p-3 rounded-xl shadow-md border-2 border-blue-300"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div>
-                        <span className="font-semibold text-blue-700">
-                          {chat.sender}:{" "}
-                        </span>
-                        <span className="text-gray-700">{chat.message}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleLike(chat.answer_id, index)}
-                          className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
-                          disabled={chat.likes.includes(task.user_name)}
-                        >
-                          <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" />
-                          {chat.likes.length > 0 &&  (
-                            <span className="ml-1 text-xs">{chat.likes.length}</span>
-                          )}
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
-                            >
-                              <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem>Report message</DropdownMenuItem>
-                            <DropdownMenuItem>Copy text</DropdownMenuItem>
-                            <DropdownMenuItem>Pin message</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </motion.div>
-                  ))}
+                      <motion.div
+                        key={index}
+                        className="text-xs md:text-sm mb-3 flex justify-between items-center bg-white p-3 rounded-xl shadow-md border-2 border-blue-300"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div>
+                          <span className="font-semibold text-blue-700">
+                            {chat.sender}:{" "}
+                          </span>
+                          <span className="text-gray-700">{chat.message}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleLike(chat.answer_id, index)}
+                            className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                            disabled={chat.likes.includes(task.user_name)}
+                          >
+                            <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" />
+                            {chat.likes.length > 0 && (
+                              <span className="ml-1 text-xs">{chat.likes.length}</span>
+                            )}
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                              >
+                                <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>Report message</DropdownMenuItem>
+                              <DropdownMenuItem>Copy text</DropdownMenuItem>
+                              <DropdownMenuItem>Pin message</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </motion.div>
+                    ))}
                   {chatHistory !== null && chatHistory.answers.length === 0 && (
                     <div className="text-xs md:text-sm text-gray-500 italic text-center p-4 bg-blue-100 rounded-xl border-2 border-blue-200">
                       Start your quest by sending a message!
@@ -353,8 +361,8 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
 
-                    
-/******  93388eab-c8ad-4299-ac49-83f3befb201a  *******/
+
+                  /******  93388eab-c8ad-4299-ac49-83f3befb201a  *******/
                 }}
               ></div>
               <input

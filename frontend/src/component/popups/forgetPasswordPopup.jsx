@@ -12,7 +12,13 @@ const ForgetPasswordPopup = ({ isOpen, onClose }) => {
     const handleRetrieveCode = async () => {
 
         try {
-            const response = await fetch('http://localhost:5000/api/forgot_password', {
+            //  mit prajapati (development and production link support)
+            const API_BASE_URL =
+                process.env.NODE_ENV === "development"
+                    ? "http://localhost:5000"
+                    : process.env.Deployed_link;
+
+            const response = await fetch(`${API_BASE_URL}/api/forgot_password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

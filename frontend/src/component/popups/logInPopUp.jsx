@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 
 const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess }) => {
     if (!isOpen) return null;
-    const {q_id} = useParams();
+    const { q_id } = useParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(null);
@@ -18,11 +18,17 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
         setLoading(true);
 
         try {
-            const response = await fetch("http://localhost:5000/api/login", {
+            //  mit prajapati (development and production link support)
+            const API_BASE_URL =
+                process.env.NODE_ENV === "development"
+                    ? "http://localhost:5000"
+                    : process.env.Deployed_link;
+
+            const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                }, 
+                },
                 body: JSON.stringify({ email, password }),
             });
 
@@ -98,39 +104,39 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
                         </div>
                     </div>
                     <form onSubmit={handleLogin}>
-                    <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
-                        <InputField
-                            id="loginUsername"
-                            label="Email ID"
-                            icon={<User />}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="cosmic_chris_42 or chris@cosmos.com"
-                        />
-                        <InputField
-                            id="loginPassword"
-                            label="Password"
-                            icon={<Key />}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            type="password"
-                            placeholder="••••••••"
-                        />
-                        
-                        <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
-                            {loading ? "Logging In..." : "Enter to Stake City"}
-                            
-                        </Button>
-                        <div className="text-right">
-                            <Button
-                                variant="link"
-                                className="text-sm text-cyan-400 hover:text-cyan-300"
-                                onClick={forgetPassOpen}
-                            >
-                                Lost your password?
+                        <div className="p-4 space-y-3 bg-gradient-to-b from-gray-800 to-gray-900">
+                            <InputField
+                                id="loginUsername"
+                                label="Email ID"
+                                icon={<User />}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="cosmic_chris_42 or chris@cosmos.com"
+                            />
+                            <InputField
+                                id="loginPassword"
+                                label="Password"
+                                icon={<Key />}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                type="password"
+                                placeholder="••••••••"
+                            />
+
+                            <Button className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon">
+                                {loading ? "Logging In..." : "Enter to Stake City"}
+
                             </Button>
+                            <div className="text-right">
+                                <Button
+                                    variant="link"
+                                    className="text-sm text-cyan-400 hover:text-cyan-300"
+                                    onClick={forgetPassOpen}
+                                >
+                                    Lost your password?
+                                </Button>
+                            </div>
                         </div>
-                    </div>
                     </form>
 
                     {/* Footer */}

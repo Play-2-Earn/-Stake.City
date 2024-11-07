@@ -17,7 +17,13 @@ const signUpPopUp = ({ isOpen, onClose, AlreadyUserClick, onRegisterSuccess }) =
     const handleSignUp = async (event) => {
         event.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
+            //  mit prajapati (development and production link support)
+            const API_BASE_URL =
+                process.env.NODE_ENV === "development"
+                    ? "http://localhost:5000"
+                    : process.env.Deployed_link;
+
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,7 +37,7 @@ const signUpPopUp = ({ isOpen, onClose, AlreadyUserClick, onRegisterSuccess }) =
                     phone,
                 }),
             });
-    
+
             if (response.ok) {
                 const data = await response.json();
                 console.log('Success:', data);
@@ -49,7 +55,7 @@ const signUpPopUp = ({ isOpen, onClose, AlreadyUserClick, onRegisterSuccess }) =
             alert(error.message || 'Failed to register');
         }
     };
-    
+
     return (
         <AnimatePresence>
             <motion.div

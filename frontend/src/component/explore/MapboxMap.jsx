@@ -34,10 +34,16 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [isLink, setIsLink] = useState(false);
   const markers = useRef([]);
   const [sampleUser, setSampleUser] = useState(null);
-  
+
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetch('http://localhost:5000/api/user_dashboard', {
+      //  mit prajapati (development and production link support)
+      const API_BASE_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000"
+          : process.env.Deployed_link;
+
+      const response = await fetch(`${API_BASE_URL}/api/user_dashboard`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`,
@@ -46,57 +52,58 @@ const MapboxMap = ({ showControls, q_id }) => {
       let data = await response.json();
       data = {
         ...data,
-      avatar: '/avatar.svg',
+        avatar: '/avatar.svg',
       };
       console.log(data);
       setSampleUser(data);
     };
     fetchUser();
   }, []);
-  
+
   // Fetch locations from the backend when the component mounts
   useEffect(() => {
     if (q_id) {
       setIsLink(true);
-  
-        // Fetch the question data from the API
-        fetch(`http://localhost:5000/api/view_question/${q_id}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Question not found.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            setAllTasks((prevTasks) => [...prevTasks, data]);
-            setSelectedTask({
-              question_id: data.question_id,
-              title: data.taskTitle,
-              description: data.taskDescription,
-              location: data.location_name,
-              user_name: data.user_name,
-              full_name: data.full_name,
-              stakeAmount: data.stake_amount,
-              share_url: data.share_url,
-              navigation_url: data.navigation_url
-            });
-            handleMarkerClick(data);
-          })
-          .catch((error) => {
-            console.error(error.message);
+
+      // Fetch the question data from the API
+      fetch(`${API_BASE_URL}/api/view_question/${q_id}`)
+
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Question not found.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setAllTasks((prevTasks) => [...prevTasks, data]);
+          setSelectedTask({
+            question_id: data.question_id,
+            title: data.taskTitle,
+            description: data.taskDescription,
+            location: data.location_name,
+            user_name: data.user_name,
+            full_name: data.full_name,
+            stakeAmount: data.stake_amount,
+            share_url: data.share_url,
+            navigation_url: data.navigation_url
           });
-      }
-    
+          handleMarkerClick(data);
+        })
+        .catch((error) => {
+          console.error(error.message);
+        });
+    }
+
     const fetchLocations = async () => {
       try {
         const token = sessionStorage.getItem("jwtToken");
-        const response = await fetch("http://localhost:5000/api/get_all_tasks", {
+        const response = await fetch(`${API_BASE_URL}/api/get_all_tasks`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
-        }); 
+        });
         const data = await response.json();
-        setAllTasks(data); 
+        setAllTasks(data);
       } catch (error) {
         console.error("Error fetching locations:", error);
       }
@@ -113,7 +120,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       createMarker(task.coordinates, task);
     });
   }, [allTasks]);
-  
+
   const sampleTask = {
     title: "Magical Park Cleanup Quest",
     description: "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
@@ -121,7 +128,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     stakeAmount: 1000,
   };
 
-  
+
 
   // UI button handling functions
 
@@ -177,7 +184,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     setIsPopupOpen(true);
     console.log(getAddressFromCoordinates(coordinates.lng, coordinates.lat));
     setTaskCoordinates(coordinates);
-    setLongLat(coordinates); 
+    setLongLat(coordinates);
   };
 
   const handleDropTaskSuccess = (task) => {
@@ -186,7 +193,7 @@ const MapboxMap = ({ showControls, q_id }) => {
 
     if (task) {
       if (taskCoordinates && mapRef.current) {
-        const marker = createMarker(taskCoordinates,task); // Create the marker
+        const marker = createMarker(taskCoordinates, task); // Create the marker
 
         setTaskMarkers(prevMarkers => [
           ...prevMarkers,
@@ -262,10 +269,10 @@ const MapboxMap = ({ showControls, q_id }) => {
   const handleZoomReset = () => {
     if (mapRef.current) {
       const currentZoom = mapRef.current.getZoom();
-  
+
       let speed = 2;   // Default speed for moderate zoom levels
       let curve = 1.4; // Default curve for moderate zoom levels
-  
+
       // Make the zoom-out faster if zoomed in deeply, and slower if zoomed out
       if (currentZoom > 5) {
         speed = 6; // Faster zoom-out if zoomed in
@@ -277,7 +284,7 @@ const MapboxMap = ({ showControls, q_id }) => {
         speed = 1; // Slower speed for lower zoom levels
         curve = 1.8; // More gradual zoom-out at low zoom levels
       }
-  
+
       mapRef.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
@@ -293,11 +300,11 @@ const MapboxMap = ({ showControls, q_id }) => {
 
   const getAddressFromCoordinates = async (lng, lat) => {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`;
-  
+
     try {
       const response = await fetch(url);
       const data = await response.json();
-  
+
       if (data.features && data.features.length > 0) {
         const address = data.features[0].place_name; // Get the most relevant address
         console.log('Address:', address);
@@ -312,7 +319,7 @@ const MapboxMap = ({ showControls, q_id }) => {
       return null;
     }
   };
-  
+
   useEffect(() => {
     if (mapContainer.current) {
       const map = new mapboxgl.Map({
@@ -325,7 +332,7 @@ const MapboxMap = ({ showControls, q_id }) => {
         maxZoom: MAX_ZOOM,
         scrollZoom: false,
         keyboard: false,
-        
+
       });
 
       mapRef.current = map;
@@ -364,7 +371,7 @@ const MapboxMap = ({ showControls, q_id }) => {
         isMouseHeld = true;
         mouseHoldTimeout = setTimeout(() => {
           if (isMouseHeld) {
-            console.log("Mouse held",  e.lngLat);
+            console.log("Mouse held", e.lngLat);
             handleDropQuestClick(e.lngLat);
           }
         }, 1000);
@@ -399,24 +406,24 @@ const MapboxMap = ({ showControls, q_id }) => {
   const updateMarkerVisibility = () => {
     const currentZoom = mapRef.current.getZoom();
     const mapBounds = mapRef.current.getBounds();
-  
+
     markers.current.forEach((marker) => {
       const isVisible =
         currentZoom >= MIN_ZOOM_FOR_MARKERS &&
         mapBounds.contains(marker.coordinates);
-    
+
       marker.marker.getElement().style.display = isVisible ? 'block' : 'none';
     });
-    
+
   };
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.on('zoom', updateMarkerVisibility);
       mapRef.current.on('move', updateMarkerVisibility); // Update when the map moves as well
-  
+
       // Initial call to set the visibility when the map first loads
       updateMarkerVisibility();
-  
+
       return () => {
         mapRef.current.off('zoom', updateMarkerVisibility);
         mapRef.current.off('move', updateMarkerVisibility);
@@ -453,32 +460,32 @@ const MapboxMap = ({ showControls, q_id }) => {
         tabIndex="0"
       />
       {/* Show the welcome popup when it's open */}
-      {welcomePopupOpen && <WelcomePopup onClose={handleCloseWelcomePopup}/>}
-      
+      {welcomePopupOpen && <WelcomePopup onClose={handleCloseWelcomePopup} />}
+
       {!welcomePopupOpen && (
-      <>
-      <SearchBar onSearch={handleSearch} />
-      <Taskbar />
-      <ZoomOutButton onZoomReset={handleZoomReset} />
-      <GamifiedTaskPopup
-        task={selectedTask}
-        isStaker={Math.random() > 0.5}
-        isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"}
-        onClose={() => setIsPopupOpen(false) && setActivePopup(null)}
-      />
-      <DropTaskPopup
-        isOpen={isPopupOpen && activePopup === "DropTaskPopup"}
-        onClose={() => {
-          setIsPopupOpen(false);
-          setActivePopup(null);
-        }}
-        onSuccess={handleDropTaskSuccess}
-        lng={lng}
-        lat={lat}
-        verbalAddress={verbalAddress}
-      />
-  
-      </>
+        <>
+          <SearchBar onSearch={handleSearch} />
+          <Taskbar />
+          <ZoomOutButton onZoomReset={handleZoomReset} />
+          <GamifiedTaskPopup
+            task={selectedTask}
+            isStaker={Math.random() > 0.5}
+            isOpen={isPopupOpen && activePopup === "GamifiedTaskPopup"}
+            onClose={() => setIsPopupOpen(false) && setActivePopup(null)}
+          />
+          <DropTaskPopup
+            isOpen={isPopupOpen && activePopup === "DropTaskPopup"}
+            onClose={() => {
+              setIsPopupOpen(false);
+              setActivePopup(null);
+            }}
+            onSuccess={handleDropTaskSuccess}
+            lng={lng}
+            lat={lat}
+            verbalAddress={verbalAddress}
+          />
+
+        </>
       )}
     </div>
   );
