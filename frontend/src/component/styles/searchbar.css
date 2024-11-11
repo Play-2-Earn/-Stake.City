@@ -30,7 +30,7 @@
   }
   
   .search-bar-button {
-    background-color: #33669C;
+    background-color: rgb(32, 201, 151);
     border-radius: 36px;
     cursor: pointer;
     transition: transform 0.3s ease;
