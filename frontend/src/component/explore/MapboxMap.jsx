@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import DropTaskPopup from "./droptask";
 import GamifiedTaskPopup from "./starttask";
 import SearchBar from "./searchbar";
 import UserInfo from './UserInfo';
+import WalletInfo from './WalletInfo';
+import AlertMessage from './AlertMessage';
 import WelcomePopup from './welcomepopup';
 import Taskbar from './Taskbar';
 import ZoomOutButton from './ZoomOutButton';
@@ -34,6 +35,24 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [isLink, setIsLink] = useState(false);
   const markers = useRef([]);
   const [sampleUser, setSampleUser] = useState(null);
+  const [walletData, setWalletData] = useState({ address: null, balance: null });
+  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' | 'error' })
+
+  // API - Fetch User Wallet Data
+  useEffect(() => {
+    // Fetch Wallet Data
+    const getUserWalletAddress = async () => {
+      const data = {
+        address: null,
+        balance: 1000000,
+      }
+      setWalletData(data);
+    }
+
+    // Set Wallet Data
+    getUserWalletAddress();
+  }, [])
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -451,18 +470,28 @@ const MapboxMap = ({ showControls, q_id }) => {
     <div>
       <div class="top-rectangle" />
       <div class="bottom-rectangle" />
+
       {/* User info should always be visible */}
       <UserInfo user={sampleUser} />
+
+      {/* Wallet Info */}
+      <WalletInfo walletData={walletData} setWalletData={setWalletData} setAlertInfo={setAlertInfo} />
+
+      {/* Alert - Action Message */}
+      {alertInfo.open &&
+        <AlertMessage alertInfo={alertInfo} setAlertInfo={setAlertInfo} />
+      }
+
+      {/* Globe */}
       <div
         id="map-container"
         ref={mapContainer}
         style={{ width: '100%', height: '100vh', outline: 'none' }}
         tabIndex="0"
       />
-      {/* Show the welcome popup when it's open */}
-      {welcomePopupOpen && <WelcomePopup onClose={handleCloseWelcomePopup} />}
 
-      {!welcomePopupOpen && (
+      {/* Show the welcome popup when it's open */}
+      {welcomePopupOpen ? <WelcomePopup onClose={handleCloseWelcomePopup} /> :
         <>
           <SearchBar onSearch={handleSearch} />
           <Taskbar />
@@ -484,9 +513,8 @@ const MapboxMap = ({ showControls, q_id }) => {
             lat={lat}
             verbalAddress={verbalAddress}
           />
-
         </>
-      )}
+      }
     </div>
   );
 };
