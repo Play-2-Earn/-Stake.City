@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { LuWallet } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import * as Popover from '@radix-ui/react-popover';
 import { X } from "lucide-react";
+import { LuWallet } from "react-icons/lu";
 import { FaMoneyBills } from "react-icons/fa6";
 import { RiHandCoinLine } from "react-icons/ri";
+import { IoCopy } from "react-icons/io5";
 import AddWalletNote from "../popups/addWalletNote";
 import AddWalletPopUp from '../popups/addWalletPopUp';
 import RedeemCoinPopUp from "../popups/redeemCoinPopUp";
 import AddCoinPopUp from "../popups/addCoinPopUp";
 import { formatFiat } from "../lib/utils.js";
-import { IoCopy } from "react-icons/io5";
 
 const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
   const [walletBalance, setwalletBalance] = useState(0);
@@ -75,7 +75,7 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
   return (
     <>
       {/* Wallet */}
-      <div className="fixed top-[20px] right-[20px] z-50">
+      <div className="fixed top-[20px] right-[20px] z-[1000]">
         <Popover.Root open={openWalletDetail} onOpenChange={(open) => setOpenWalletDetail(open)}>
           {/* Btn - Wallet Icon */}
           <Popover.Trigger>
@@ -97,7 +97,7 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
                 transition={{ duration: 0.1, ease: "easeIn" }}
               >
                 <Popover.Content
-                  className="absolute top-0 right-[-1.5em] w-fit flex flex-col items-center gap-1 py-3 pb-5 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-50 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden"
+                  className="absolute top-0 right-[-1.5em] w-fit flex flex-col items-center gap-1 py-3 pb-5 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-50 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
                   key="wallet-detail"
                 >
                   {/*  Btn - Close Wallet Details */}

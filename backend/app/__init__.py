@@ -20,7 +20,7 @@ def create_app():
     mail = Mail(app)
     app.secret_key = os.getenv('SECRET_KEY')
 
-    CORS(app, supports_credentials=True ,resources={r"/*": {"origins": "http://localhost:5173", "allow_headers": ["Authorization", "Content-Type"]}})
+    CORS(app, supports_credentials=True ,resources={r"/*": {"origins": ["http://localhost:5173/*", "*"], "allow_headers": ["Authorization", "Content-Type"]}})
 
     # Register blueprints
     from .api.Register import register_bp
@@ -29,6 +29,7 @@ def create_app():
     from .api.question import question_bp
     from .api.answer import answer_bp
     from .api.User_dash import dashboard_bp
+    from .api.payment import payment_bp
 
     app.register_blueprint(register_bp)
     app.register_blueprint(login_bp)
@@ -36,6 +37,7 @@ def create_app():
     app.register_blueprint(question_bp)
     app.register_blueprint(answer_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(payment_bp)
 
 
     return app

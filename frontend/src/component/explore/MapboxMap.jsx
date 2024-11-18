@@ -53,14 +53,13 @@ const MapboxMap = ({ showControls, q_id }) => {
     getUserWalletAddress();
   }, [])
 
-
+  // API - Fetch User Data
   useEffect(() => {
     const fetchUser = async () => {
       //  mit prajapati (development and production link support)
-      const API_BASE_URL =
-        process.env.NODE_ENV === "development"
-          ? "http://localhost:5000"
-          : process.env.Deployed_link;
+      const API_BASE_URL = process.env.NODE_ENV === "development"
+        ? "http://localhost:5000"
+        : process.env.Deployed_link;
 
       const response = await fetch(`${API_BASE_URL}/api/user_dashboard`, {
         method: 'GET',
@@ -150,7 +149,6 @@ const MapboxMap = ({ showControls, q_id }) => {
 
 
   // UI button handling functions
-
   const handleSearch = async (newQuery) => {
     try {
       const response = await fetch(
@@ -184,7 +182,6 @@ const MapboxMap = ({ showControls, q_id }) => {
   };
 
   // Popup handling functions
-
   const handleCloseWelcomePopup = () => {
     setWelcomePopupOpen(false); // Once the welcome popup is closed, the rest of the UI will be shown
   };

@@ -7,3 +7,4 @@ PyJWT
 mongoengine
 user_agents
 requests
+stripe
