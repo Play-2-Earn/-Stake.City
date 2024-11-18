@@ -1,2 +1,3 @@
 /backend/app/api/__pycache__
 /backend/app/__pycache__
+/backend/app/api/.env
