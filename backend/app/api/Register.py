@@ -44,36 +44,44 @@ def send_verification_email(user_name, receiver_email):
     port = 587  # For starttls
     sender_email = current_app.config['MAIL_USERNAME']
     sender_pwd = current_app.config['MAIL_PASSWORD']
-    
+
     subject = 'Email Verification'
     verification_link = f"http://localhost:5000/api/verify_email/{user_name}"
-    
+
     body = f'''
         <html>
             <body>
-                <p>Please click on the verification link: 
+                <p>Please click on the verification link:
                 <a href="{verification_link}">Click Here</a></p>
             </body>
         </html>
         '''
-    
+
     try:
         server = smtplib.SMTP(smtp_server, port)
         server.starttls()  # Secure the connection
         server.login(sender_email, sender_pwd)
-        
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = sender_email
         msg["To"] = receiver_email
         msg.attach(MIMEText(body, "html"))
-        
+
         server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
         return True
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+def validate_location(location):
+    """Validates the location based on the format 'state, Country'."""
+    pattern = r'^[A-Za-z\s]+,\s[A-Za-z\s]+$'  # Matches "state, Country"
+
+    return bool(re.match(pattern, location))
+
+
 @register_bp.route('/api/register', methods=['POST'])
 def register():
     user_data = request.get_json()
@@ -87,11 +95,15 @@ def register():
     email = user_data.get('email')
     mobile = user_data.get('phone')
     terms_accepted = user_data.get('terms_accepted', True)
+    location  = user_data.get('location')
 
     # Validate password
     if not validate_password(password):
         return jsonify({"error": "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."}), 400
-    
+
+    if not validate_location(location):
+         return jsonify({"error": "Invalid location format. The location should be in the format 'state, Country', with only alphabetic characters and a comma followed by a space (e.g., 'California, USA')."}), 400
+
     # Ensure terms and conditions are accepted
     if not terms_accepted:
         return jsonify({"error": "You must accept the terms and conditions."}), 400
@@ -100,7 +112,7 @@ def register():
     if User.objects(email=email).first() or User.objects(user_name=user_name).first():
         return jsonify({"error": "Email or username is already registered."}), 400
 
-    # remove the hashing for now (mit prajapati) 
+    # remove the hashing for now (mit prajapati)
     # Hash the password
     # hashed_password = generate_password_hash(password)
 
@@ -113,7 +125,8 @@ def register():
         password=password,
         email=email,
         mobile=mobile,
-        terms_accepted=terms_accepted
+        terms_accepted=terms_accepted,
+        location=location
     )
 
     # Save the user temporarily
@@ -131,7 +144,7 @@ def register():
 def verify_email(user_name):
     """Verify email and complete user registration."""
     user = User.objects(user_name=user_name).first()
-    
+
     if user and not user.verified_email:
         user.verified_email = True
         user.save()

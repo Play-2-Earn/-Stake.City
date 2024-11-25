@@ -1,0 +1,287 @@
+.userrow , .currentuser{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px auto;
+    border-radius: 8px;
+    width: 80%;
+    height: 80px ;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    min-width: 300px;
+
+}
+.userrow {
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+}
+.currentuser{
+    background-color: rgba(69, 190, 166, 0.7);
+    backdrop-filter: blur(2px);
+}
+
+@media screen and (max-width: 933px) {
+    .userrow, .currentuser{
+        margin-left: 30px;
+    }
+
+
+}
+
+@media  screen and (max-width: 933px) and (max-height: 431px) {
+    .userrow , .currentuser{
+        width: 100%;
+        margin: 20px 0 20px 10px;
+
+    }
+    .user{
+        margin-left: 0 !important;
+    }
+    .userinfo{
+        min-width: 180px !important;
+    }
+      .user > .userinfo{
+        display:flex;
+        flex-direction:column;
+        align-items: flex-start;
+        justify-content:center ;
+        gap: 0;
+        width: 130px !important;
+    } .trophy {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        width: 100px;
+        height: 80%;
+        margin: auto 0;
+        border: none;
+        border-radius: 35px;
+        margin-left: 0 !important;
+    }
+ .credits {
+        display:flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0;
+        height: 80%;
+        margin-left: 0 !important;
+    }
+    .userrow > .rank, .currentuser > .rank {
+        margin-left: 8px !important;
+    }
+}
+
+.userrow:nth-child(1){
+    border: 1px solid black ;
+    border-radius: 0;
+}
+.userrow > .rank , .currentuser > .rank{
+position: relative;
+    margin-left: 20px;
+    width: 30px;
+    min-width: 30px;
+    margin-right: 10px;
+}
+
+
+
+.userrow > .rank > p , .currentuser > .rank > p{
+    position: absolute;
+    display: flex   ;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    color: white;
+    top: 33%;
+    left: 17%;
+    text-align: center;
+    width: 20px !important;
+}
+
+ .user {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
+    height: auto;
+    min-width: 220px;
+}
+
+ .user > img{
+    width: 55px;
+    height: 55px;
+}
+
+ .user > .userinfo{
+    display:flex;
+    flex-direction:column;
+    align-items: flex-start;
+    justify-content:center ;
+    gap: 0;
+    width: 180px;
+    min-width: 140px !important;
+    /* overflow: visible;
+    overflow-x: auto; */
+    margin-right: 10px;
+    position: relative;
+}
+.user > .userinfo p, /* Assuming p or any block element inside .userinfo */
+.user > .userinfo span { /* Or any other inline elements */
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden; /* Hides overflowing content */
+    text-overflow: ellipsis; /* Adds ellipses (...) to indicate overflow */
+    display: block; /* Ensures the element respects the width */
+    max-width: 100%; /* Ensures the ellipsis applies within the parent width */
+}
+
+ .user > .userinfo > .name{
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+}
+
+ .user > .userinfo > .location{
+    font-size: 12px;
+    font-weight: 400;
+    color: white;
+    opacity: 0.7;
+}
+ .achievement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    height: 80%;
+    width: auto;
+    min-width: 240px;
+    margin: auto 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 35px;
+    padding: 0 2%;
+    color: white;
+}
+
+ .achievement > img{
+    width: 50px;
+    height: 50px;
+}
+
+ .trophy {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    width: 100px;
+    min-width: 100px;
+    height: 80%;
+    margin: auto 0;
+    border: none;
+    border-radius: 35px;
+    margin-left: 40px;
+}
+
+ .credits {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    height: 80%;
+    margin-left: 20px;
+    margin-right: 40px;
+    width: 100px;
+    position: relative;
+}
+
+ .credits > p{
+    text-align: end;
+    width: 100%;
+}
+ .credits > .val{
+    color: white;
+    text-align: end;
+    font-weight: 600;
+}
+
+ .credits > .key{
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+.reputation {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    height: 80%;
+
+
+}
+.reputation > p{
+    text-align: start;
+    width: 100%;
+}
+ .reputation > .val{
+    color: white;
+    text-align: end;
+    font-weight: 600;
+}
+
+ .reputation > .key{
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+.credits > p {
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden; /* Hides overflowing content */
+    text-overflow: ellipsis; /* Adds ellipses (...) to indicate overflow */
+    display: block; /* Ensures the element respects the width */
+    max-width: 100%; /* Ensures the ellipsis applies within the parent width */
+}
+
+.userinfo > .helpUser{
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(2px);
+    position: absolute;
+    border-radius: 15px;
+    padding: 1% 2%;
+    right: 0px;
+    top: -20px;
+    z-index: 10;
+    visibility: hidden;
+    transition: visibility 0.7s ease-in-out;
+}
+
+.userinfo > .helpUser > p{
+    font-size: 12px;
+}
+
+.userinfo:hover > .helpUser{
+    visibility:visible;
+}
+
+.credits > .helpCredits{
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(2px);
+    position: absolute;
+    border-radius: 15px;
+    padding:3% 5%;
+    right: -20px;
+    top: -5px;
+    z-index: 10;
+    visibility: hidden;
+    transition: visibility 0.5s ease-in-out;
+}
+
+.credits > .helpCredits > p{
+    font-size: 12px;
+}
+
+.credits:hover > .helpCredits{
+    visibility:visible;
+}

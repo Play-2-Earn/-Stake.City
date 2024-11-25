@@ -30,6 +30,7 @@ def create_app():
     from .api.answer import answer_bp
     from .api.User_dash import dashboard_bp
     from .api.payment import payment_bp
+    from .api.LeaderBoard import user_bp
 
     app.register_blueprint(register_bp)
     app.register_blueprint(login_bp)
@@ -38,6 +39,7 @@ def create_app():
     app.register_blueprint(answer_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(payment_bp)
+    app.register_blueprint(user_bp)
 
 
     return app

@@ -41,7 +41,7 @@ const LogInPopUp = ({ isOpen, onClose, NewToGame, forgetPassOpen, onLoginSuccess
 
             const data = await response.json();
             console.log("Login successful:", data);
-
+            sessionStorage.setItem("user" , data.user)
             sessionStorage.setItem("jwtToken", data.token);
             onLoginSuccess();
             onClose();

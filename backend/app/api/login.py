@@ -35,7 +35,7 @@ def get_ip_address():
 # Function to parse the user agent and extract details
 def get_device_info(user_agent_string):
     user_agent = parse(user_agent_string)
-    
+
     # Get browser name from the user_agent object
     browser_name = user_agent.browser.family  # Use `family` to get the name
     return browser_name  # Return only browser name for now
@@ -66,19 +66,19 @@ def get_device_details(browser):
                 os_name = data.get('os', {}).get('name', 'Unknown')
                 print(f"No device name found. Using OS name: {os_name}")  # Log fallback information
                 return 'Unknown', 'Unknown', os_name, device_type
-            
+
             # If device name is found
             if device_type in ['mobile', 'tablet']:
                 brand = data.get('device', {}).get('brand', 'Unknown')
                 model = data.get('device', {}).get('model', 'Unknown')
                 return brand, model, device_name, device_type
-            
+
             # For desktop
             elif device_type == 'desktop':
                 os_name = data.get('os', {}).get('name', 'Unknown')
                 print(f"Desktop detected. Using OS name: {os_name}")  # Log desktop information
                 return 'Unknown', 'Unknown', os_name, device_type
-            
+
             else:
                 return 'Unknown', 'Unknown', 'Unknown', 'Unknown'
         else:
@@ -189,5 +189,6 @@ def login():
     # Successful login response
     return jsonify({
         "message": f"Login successful. Welcome, {full_name}!",
-        "token": token
+        "token": token,
+        "user": user.user_name
     }), 200

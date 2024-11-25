@@ -18,12 +18,13 @@ class User(Document):
     user_name = StringField(required=True, unique=True)  # Unique user identifier
     mobile = StringField(required=True)
     email = StringField(required=True, unique=True)
-    password = StringField(unique=True)  # Ensure password is required
+    password = StringField(required=True)  # Ensure password is required
     full_name = StringField(required=True)
     age = IntField(required=True)
     gender = StringField()
     terms_accepted = BooleanField(default=False)
     verified_email = BooleanField(default=False)
+    location = StringField(required=True) # Location specific to the Player mode
 
 class Login(Document):
     user_name = ReferenceField(User, required=True)  # Reference to the User model (Foreign key)
@@ -74,8 +75,8 @@ class QuestionExtension(Document):
     extension_date = DateTimeField(default=datetime.utcnow)
 
 class Answer(Document):
-    question_id = ReferenceField('Question', required=True) 
-    asker_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)  
+    question_id = ReferenceField('Question', required=True)
+    asker_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)
     answer_giver_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)
     answer = StringField(required=True)
     likes = ListField(StringField(), default=[])
@@ -123,7 +124,10 @@ class UserDashboard(Document):
         # Update the last_updated timestamp
         self.last_updated = datetime.utcnow()
         self.save()
-    
+    meta = {
+        'indexes': ['user_name']
+    }
+
 for dashboard in UserDashboard.objects:
     if not hasattr(dashboard, 'is_active'):
         dashboard.is_active = True  # or whatever default value you choose
@@ -156,7 +160,7 @@ class Admin(Document):
 
     def __str__(self):
         return f"Admin({self.admin_username}, {self.full_name})"
-    
+
 class SelectedAnswer(Document):
     user_name = StringField(required=True)  # The responder's username whose answer is selected
     answer = ReferenceField(Answer, required=True)  # Reference to the selected answer document
