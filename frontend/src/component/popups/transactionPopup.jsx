@@ -12,7 +12,7 @@ const SignTransactionModal = ({ isOpen, onClose, onConfirm, isLoading, transacti
           You're about to sign a staking transaction with the following details:
         </p>
         <div className="mb-4">
-          <p><strong>Stake Amount:</strong> {transactionDetails.stakeAmount} ETH</p>
+          <p><strong>Stake Amount:</strong> {transactionDetails.stakeAmount} STC</p>
           <p><strong>Gas Fee:</strong> {transactionDetails.gasFee} Gwei</p>
         </div>
         <div className="flex justify-end">

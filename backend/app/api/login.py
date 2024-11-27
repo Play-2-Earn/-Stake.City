@@ -18,13 +18,6 @@ import os
 # Load environment
 load_dotenv(dotenv_path=".env")
 
-MONGODB_HOST = os.getenv("MONGO_URI")
-
-# Connect to MongoDB on localhost
-connect(
-    db='stake_city',
-    host=MONGODB_HOST,
-)
 # Function to get the user's IP address
 def get_ip_address():
     if request.environ.get('HTTP_X_FORWARDED_FOR'):

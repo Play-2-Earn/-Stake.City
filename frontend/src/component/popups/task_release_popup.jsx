@@ -23,7 +23,6 @@ const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
 
     const addingSelectedUsers = (username) => {
         selectedUser.push(username)
-
     }
 
     const finalTaskReleasePopUpOpen = (username) => {
@@ -34,7 +33,6 @@ const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
         if (selectedUser.length === 3) {
             setFinalReleasePopup(true);
         }
-
     }
 
     const afterFinalResponse = () => {

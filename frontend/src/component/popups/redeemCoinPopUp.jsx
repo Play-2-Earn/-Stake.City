@@ -7,10 +7,20 @@ import Button from "./popups_component/button.jsx";
 import { X, Wallet } from "lucide-react";
 import { RiHandCoinLine } from "react-icons/ri";
 import { formatFiat } from "../lib/utils.js";
+import useAlert from '../../Hooks/useAlert.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { setWalletBalance } from '../../Store/Slices/Wallet.js';
 
-const RedeemCoinPopUp = ({ isOpen, setOpen, walletBalance, updateWalletBalance, setAlertInfo }) => {
+const API_BASE_URL = process.env.NODE_ENV === "development"
+  ? "http://localhost:5000"
+  : process.env.Deployed_link;
+
+const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
   const [redeemAmount, setRedeemAmount] = useState(null);
   const [precessingRedeem, setProcessingRedeem] = useState(false);
+  const walletBalance = useSelector((state) => state.walletState.balance);
+  const showAlert = useAlert();
+  const dispatch = useDispatch();
 
   // Handler - On Pop Up Close
   function onPopUpClose() {
@@ -25,20 +35,10 @@ const RedeemCoinPopUp = ({ isOpen, setOpen, walletBalance, updateWalletBalance, 
 
     // Check if Redeem Amount is Valid
     if (!redeemAmount) {
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: 'Please Enter a Valid Amount.',
-      }));
+      showAlert({ severity: "error", message: "Please Enter a Valid Amount." });
       return;
     } else if (redeemAmount > walletBalance) {
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: "You don't have that much STC !",
-      }));
+      showAlert({ severity: "error", message: "You don't have that much STC !" });
       return;
     }
 
@@ -50,17 +50,12 @@ const RedeemCoinPopUp = ({ isOpen, setOpen, walletBalance, updateWalletBalance, 
       const response = await redeemCoin();
 
       // Handle API response
-      if (response === "200") {
+      if (response === 200) {
         // Alert Success Message 
-        setAlertInfo((prevState) => ({
-          ...prevState,
-          open: true,
-          severity: 'success',
-          message: `${redeemAmount} STC Redeemed Successfully !`,
-        }))
+        showAlert({ severity: "success", message: `${redeemAmount} STC Redeemed Successfully !` });
 
         // Update Wallet Balance
-        updateWalletBalance("DECREASE", redeemAmount);
+        dispatch(setWalletBalance(Number(walletBalance) - Number(redeemAmount)));
       }
     } catch (error) {
       console.error("Error redeeming token:", error);
@@ -70,13 +65,28 @@ const RedeemCoinPopUp = ({ isOpen, setOpen, walletBalance, updateWalletBalance, 
     }
   }
 
-  // Simulate API Call - Redeem Coin
+  // API - Redeem Coin Update Wallet Balance
   async function redeemCoin() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve("200");
-      }, 1500);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/update_wallet`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          balance: -redeemAmount,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error("Error updating wallet balance", response.status)
+      }
+
+      return response.status
+    } catch (error) {
+      console.error('Error Redeem Coin', error.message);
+    }
   }
 
   return (

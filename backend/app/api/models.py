@@ -69,6 +69,7 @@ class Question(Document):
     has_been_extended = BooleanField(default=False)
     verbal_address = StringField()  # New field added
     released = BooleanField(default=False)
+
 class QuestionExtension(Document):
     question = ReferenceField(Question, required=True)
     extended_by_days = IntField(required=True)
@@ -172,3 +173,10 @@ class SelectedAnswer(Document):
             {'fields': ['user_name', 'answer'], 'unique': True}  # Ensures a user can select a specific answer only once
         ]
     }
+
+class Wallet(Document):
+    user = ReferenceField(User, required=True, unique=True)
+    wallet_addr = StringField(unique=True)
+    balance = FloatField(required=True, default=0.0)  # Wallet balance
+    locked_amount = FloatField(default=0.0) # Balance that is locked after assigning a task
+    updated_at = DateTimeField(default=datetime.utcnow)  # Track last update time

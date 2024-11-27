@@ -2,12 +2,20 @@ from flask import Flask
 from flask_mail import Mail
 from flask_cors import CORS
 from dotenv import load_dotenv
+from mongoengine import connect
 import os
 
 load_dotenv(dotenv_path=".env")
 
 def create_app():
     app = Flask(__name__)
+
+    # Connect to MongoDB on localhost
+    MONGODB_HOST = os.getenv("MONGO_URI")
+    connect(
+        db='stake_city',
+        host=MONGODB_HOST,
+    )
 
     # Flask-Mail configuration
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -20,7 +28,12 @@ def create_app():
     mail = Mail(app)
     app.secret_key = os.getenv('SECRET_KEY')
 
-    CORS(app, supports_credentials=True ,resources={r"/*": {"origins": ["http://localhost:5173/*", "*"], "allow_headers": ["Authorization", "Content-Type"]}})
+    CORS(app, supports_credentials=True, resources={
+        r"/*": {
+            "origins": ["http://localhost:5173"],
+            "allow_headers": ["Authorization", "Content-Type"],
+        }
+    })
 
     # Register blueprints
     from .api.Register import register_bp
@@ -31,6 +44,7 @@ def create_app():
     from .api.User_dash import dashboard_bp
     from .api.payment import payment_bp
     from .api.LeaderBoard import user_bp
+    from .api.Wallet import wallet_bp
 
     app.register_blueprint(register_bp)
     app.register_blueprint(login_bp)
@@ -40,6 +54,6 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(user_bp)
-
+    app.register_blueprint(wallet_bp)
 
     return app

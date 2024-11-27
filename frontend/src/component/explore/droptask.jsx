@@ -5,6 +5,9 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import SignTransactionModal from "../popups/transactionPopup";
+import { useDispatch, useSelector } from "react-redux";
+import useAlert from "../../Hooks/useAlert";
+import { setWalletBalance } from "../../Store/Slices/Wallet";
 
 const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) => {
   const [step, setStep] = useState(0);
@@ -14,13 +17,18 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isTransactionPopupOpen, setIsTransactionPopupOpen] = useState(false);
+  const walletBalance = useSelector((state) => state.walletState.balance)
   const [transactionDetails, setTransactionDetails] = useState({
     stakeAmount: "0",
     gasFee: "5",
   });
+  const showAlert = useAlert();
+  const dispatch = useDispatch();
+
   const handleYes = () => {
     setStep(1);
   };
+
   useEffect(() => {
     if (stakeAmount > 0) {
       setTransactionDetails(prevDetails => ({
@@ -29,47 +37,6 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
       }));
     }
   }, [stakeAmount]);
-  const handleSubmit = async () => {
-    try {
-      const jwtToken = sessionStorage.getItem("jwtToken");
-      console.log(jwtToken);
-
-      //  mit prajapati (development and production link support)
-      const API_BASE_URL =
-        process.env.NODE_ENV === "development"
-          ? "http://localhost:5000"
-          : process.env.Deployed_link;
-
-      const response = await fetch(`${API_BASE_URL}/api/drop_task`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-        body: JSON.stringify({
-          taskTitle,
-          taskDescription,
-          stakeAmount,
-          lng,
-          lat,
-          verbalAddress,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Call onSuccess with the returned data if necessary
-        onSuccess(data);
-        // Optionally close the popup on success
-        onClose();
-      } else {
-        // Handle errors
-        console.error('Error creating task:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
 
   const resetAndClose = () => {
     if (isSuccess) onSuccess(true);
@@ -88,18 +55,82 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
   };
 
   const confirmStakingTransaction = async () => {
+    if (stakeAmount > walletBalance) {
+      showAlert({ severity: "error", message: `Not Enough Stake Coins. Balance: ${walletBalance} STC` });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Simulate
-      console.log("Staking transaction signed!");
       setIsTransactionPopupOpen(false);
-      handleSubmit();
+
+      const jwtToken = sessionStorage.getItem("jwtToken");
+
+      //  mit prajapati (development and production link support)
+      const API_BASE_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000"
+          : process.env.Deployed_link;
+
+      // API - Drop Task
+      const dropTaskRequest = await fetch(`${API_BASE_URL}/api/drop_task`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          taskTitle,
+          taskDescription,
+          stakeAmount,
+          lng,
+          lat,
+          verbalAddress,
+        }),
+      });
+
+      // API - Update Wallet Balance
+      const updateWalletRequest = await fetch(`${API_BASE_URL}/api/update_wallet`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          balance: -stakeAmount,
+          locked_amount: stakeAmount,
+        })
+      })
+
+      const [responseDropTask, responseUpdateWallet] = await Promise.all([dropTaskRequest, updateWalletRequest]);
+
+      if (responseDropTask.ok && responseUpdateWallet.ok) {
+        // Update Wallet balance
+        dispatch(setWalletBalance(Number(walletBalance) - Number(stakeAmount)));
+
+        const data = await responseDropTask.json();
+        // Call onSuccess with the returned data if necessary
+        onSuccess(data);
+        // Optionally close the popup on success
+        onClose();
+      } else {
+        // Extract error details from the responses
+        const errorDropTask = await responseDropTask.text();
+        const errorUpdateWallet = await responseUpdateWallet.text();
+
+        // Log detailed error messages
+        console.error('Error creating task:', responseDropTask.status, errorDropTask);
+        console.error('Error updating wallet:', responseUpdateWallet.status, errorUpdateWallet);
+      }
+
     } catch (error) {
+      showAlert({ severity: "error", message: `Error Creating Task. Try Again` });
       console.error("Error signing transaction:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -221,7 +252,7 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
                       htmlFor="stake-amount"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Stake Amount (XLM)
+                      Stake Amount (STC)
                     </label>
                     <div className="relative">
                       <Input

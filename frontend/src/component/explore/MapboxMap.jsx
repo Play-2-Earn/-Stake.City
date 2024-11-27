@@ -13,6 +13,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
 import { Avatar } from '@radix-ui/react-avatar';
+import { useDispatch, useSelector } from 'react-redux';
+import { setWalletAddress, setWalletBalance } from '../../Store/Slices/Wallet';
+import useAlert from '../../Hooks/useAlert';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -34,33 +37,40 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [allTasks, setAllTasks] = useState([]);
   const [isLink, setIsLink] = useState(false);
   const markers = useRef([]);
-  const [sampleUser, setSampleUser] = useState(null);
-  const [walletData, setWalletData] = useState({ address: null, balance: null });
-  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' | 'error' })
+  const [userData, setUserData] = useState(null);
+  const { openAlert } = useSelector((state) => state.alertState)
+  const dispatch = useDispatch();
+  const showAlert = useAlert();
+
+  //  mit prajapati (development and production link support)
+  const API_BASE_URL = process.env.NODE_ENV === "development"
+    ? "http://localhost:5000"
+    : process.env.Deployed_link;
+
 
   // API - Fetch User Wallet Data
   useEffect(() => {
     // Fetch Wallet Data
-    const getUserWalletAddress = async () => {
-      const data = {
-        address: null,
-        balance: 1000000,
-      }
-      setWalletData(data);
+    const fetchWallet = async () => {
+      const response = await fetch(`${API_BASE_URL}/api/get_wallet`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`,
+        },
+      });
+
+      const data = await response.json();
+
+      dispatch(setWalletBalance(data.balance));
+      dispatch(setWalletAddress(data.wallet_addr));
     }
 
-    // Set Wallet Data
-    getUserWalletAddress();
+    fetchWallet();
   }, [])
 
   // API - Fetch User Data
   useEffect(() => {
     const fetchUser = async () => {
-      //  mit prajapati (development and production link support)
-      const API_BASE_URL = process.env.NODE_ENV === "development"
-        ? "http://localhost:5000"
-        : process.env.Deployed_link;
-
       const response = await fetch(`${API_BASE_URL}/api/user_dashboard`, {
         method: 'GET',
         headers: {
@@ -73,7 +83,7 @@ const MapboxMap = ({ showControls, q_id }) => {
         avatar: '/avatar.svg',
       };
       console.log(data);
-      setSampleUser(data);
+      setUserData(data);
     };
     fetchUser();
   }, []);
@@ -85,7 +95,6 @@ const MapboxMap = ({ showControls, q_id }) => {
 
       // Fetch the question data from the API
       fetch(`${API_BASE_URL}/api/view_question/${q_id}`)
-
         .then((response) => {
           if (!response.ok) {
             throw new Error("Question not found.");
@@ -115,12 +124,29 @@ const MapboxMap = ({ showControls, q_id }) => {
     const fetchLocations = async () => {
       try {
         const token = sessionStorage.getItem("jwtToken");
+
+        // Check if token exists
+        if (!token) {
+          console.error("No JWT token found in session storage");
+          return;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/get_all_tasks`, {
+          method: "GET",
+          credentials: 'include',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+
         const data = await response.json();
+        console.log(data);
         setAllTasks(data);
       } catch (error) {
         console.error("Error fetching locations:", error);
@@ -206,6 +232,8 @@ const MapboxMap = ({ showControls, q_id }) => {
   const handleDropTaskSuccess = (task) => {
     setDropTaskSuccess(task);
     setIsPopupOpen(false);
+
+    showAlert({ severity: "success", message: `Task Dropped Successfully !` });
 
     if (task) {
       if (taskCoordinates && mapRef.current) {
@@ -469,15 +497,13 @@ const MapboxMap = ({ showControls, q_id }) => {
       <div class="bottom-rectangle" />
 
       {/* User info should always be visible */}
-      <UserInfo user={sampleUser} />
+      <UserInfo user={userData} />
 
       {/* Wallet Info */}
-      <WalletInfo walletData={walletData} setWalletData={setWalletData} setAlertInfo={setAlertInfo} />
+      <WalletInfo userData={userData} />
 
       {/* Alert - Action Message */}
-      {alertInfo.open &&
-        <AlertMessage alertInfo={alertInfo} setAlertInfo={setAlertInfo} />
-      }
+      {openAlert && <AlertMessage />}
 
       {/* Globe */}
       <div

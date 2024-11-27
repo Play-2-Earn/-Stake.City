@@ -8,9 +8,9 @@ from datetime import timedelta
 import jwt
 import os
 from dotenv import load_dotenv
+from flask_cors import cross_origin
 
-
-load_dotenv(dotenv_path=".env")
+load_dotenv()
 
 # Blueprint for questions
 question_bp = Blueprint('questions', __name__)
@@ -154,22 +154,31 @@ def get_user_questions():
     questions = Question.objects()
 
     # Format the questions into a list of dictionaries containing the required location data
-    questions_data = [
-        {
-            "question_id": str(question.id),
-            "user_name": question.user.user_name,
-            "full_name": question.user.full_name,
-            "taskTitle": question.question_title,
-            "taskDescription": question.question_text,
-            "coordinates": question.coordinates,  
-            "stake_amount": question.stake_amount,
-            "location_name": question.location_name,
-            "visible_until": question.visible_until,
-            "share_url": f"http:localhost:5173/explore/{str(question.id)}",
-            "navigation_url": f"https://www.google.com/maps?q={question.coordinates['lat']},{question.coordinates['lng']}",
-        }
-        for question in questions
-    ]
+    questions_data = []
+
+    for question in questions:
+        try:
+            # Safely handle user reference
+            user_name = question.user.user_name if question.user else "Unknown User"
+            full_name = question.user.full_name if question.user else "Unknown"
+
+            question_data = {
+                "question_id": str(question.id),
+                "user_name": user_name,
+                "full_name": full_name,
+                "taskTitle": question.question_title,
+                "taskDescription": question.question_text,
+                "coordinates": question.coordinates,  
+                "stake_amount": question.stake_amount,
+                "location_name": question.location_name,
+                "visible_until": question.visible_until,
+                "share_url": f"http://localhost:5173/explore/{str(question.id)}",
+                "navigation_url": f"https://www.google.com/maps?q={question.coordinates['lat']},{question.coordinates['lng']}",
+            }
+            questions_data.append(question_data)
+        except Exception as e:
+            # Log the error for the specific question
+            print(f"Error processing question {question.id}: {str(e)}")
 
     return jsonify(questions_data), 200
 

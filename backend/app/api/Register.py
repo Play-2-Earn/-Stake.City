@@ -7,6 +7,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from ..api.models import User  # Import the User model
+from ..api.models import Wallet
 from dotenv import load_dotenv
 import jwt
 from datetime import datetime, timedelta
@@ -17,13 +18,6 @@ import os
 # Load environment
 load_dotenv(dotenv_path=".env")
 
-MONGODB_HOST = os.getenv("MONGO_URI")
-
-# Connect to MongoDB on localhost
-connect(
-    db='stake_city',
-    host=MONGODB_HOST,
-)
 def validate_password(password):
     """Validates the password based on certain criteria."""
     min_length = 8

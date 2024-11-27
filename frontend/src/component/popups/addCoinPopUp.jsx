@@ -6,61 +6,251 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Button from "./popups_component/button";
 import CheckOutForm from './popups_component/checkOutForm';
+import useAlert from '../../Hooks/useAlert';
+import { useDispatch } from 'react-redux';
 
 // Stripe Form Style
 const appearance = {
   theme: 'night',
   labels: 'floating'
-
 };
-const CURRENCY_KEY = import.meta.env.VITE_CURRENCY_API_KEY
 
-const AddCoinPopUp = ({ isOpen, setOpen, updateWalletBalance, setAlertInfo }) => {
+// Constants
+const CURRENCY_KEY = import.meta.env.VITE_CURRENCY_API_KEY
+const PROCESSING_FEE = 0.03; // 3%
+const countryCurrencyMap = {
+  "af": { code: "afn", symbol: "؋" }, // Afghanistan
+  "al": { code: "lek", symbol: "L" }, // Albania
+  "dz": { code: "dzd", symbol: "دج" }, // Algeria
+  "ad": { code: "eur", symbol: "€" }, // Andorra
+  "ao": { code: "aoa", symbol: "Kz" }, // Angola
+  "ar": { code: "ars", symbol: "$" }, // Argentina
+  "am": { code: "amd", symbol: "֏" }, // Armenia
+  "au": { code: "aud", symbol: "$" }, // Australia
+  "at": { code: "eur", symbol: "€" }, // Austria
+  "az": { code: "azn", symbol: "₼" }, // Azerbaijan
+  "bh": { code: "bhd", symbol: ".د.ب" }, // Bahrain
+  "bd": { code: "bdt", symbol: "৳" }, // Bangladesh
+  "bb": { code: "bbd", symbol: "$" }, // Barbados
+  "by": { code: "byn", symbol: "Br" }, // Belarus
+  "be": { code: "eur", symbol: "€" }, // Belgium
+  "bz": { code: "bzd", symbol: "$" }, // Belize
+  "bj": { code: "cfa", symbol: "XOF" }, // Benin
+  "bt": { code: "btn", symbol: "Nu." }, // Bhutan
+  "bo": { code: "bob", symbol: "Bs." }, // Bolivia
+  "ba": { code: "bam", symbol: "KM" }, // Bosnia and Herzegovina
+  "bw": { code: "bwp", symbol: "P" }, // Botswana
+  "br": { code: "brl", symbol: "R$" }, // Brazil
+  "bn": { code: "bnd", symbol: "$" }, // Brunei
+  "bg": { code: "bgn", symbol: "лв" }, // Bulgaria
+  "bf": { code: "cfa", symbol: "XOF" }, // Burkina Faso
+  "bi": { code: "bif", symbol: "FBu" }, // Burundi
+  "kh": { code: "khr", symbol: "៛" }, // Cambodia
+  "cm": { code: "cfa", symbol: "XAF" }, // Cameroon
+  "ca": { code: "cad", symbol: "$" }, // Canada
+  "cv": { code: "cvd", symbol: "$" }, // Cape Verde
+  "cf": { code: "cfa", symbol: "CFA" }, // Central African Republic
+  "td": { code: "cfa", symbol: "CFA" }, // Chad
+  "cl": { code: "clp", symbol: "$" }, // Chile
+  "cn": { code: "cny", symbol: "¥" }, // China
+  "co": { code: "cop", symbol: "$" }, // Colombia
+  "km": { code: "kmf", symbol: "KMF" }, // Comoros
+  "cg": { code: "cdf", symbol: "FCFA" }, // Congo (Congo-Brazzaville)
+  "cd": { code: "cdf", symbol: "CFA" }, // Congo (Congo-Kinshasa)
+  "cr": { code: "crc", symbol: "₡" }, // Costa Rica
+  "ci": { code: "cfa", symbol: "CFA" }, // Côte d'Ivoire
+  "hr": { code: "hrk", symbol: "kn" }, // Croatia
+  "cu": { code: "cup", symbol: "$" }, // Cuba
+  "cy": { code: "cyp", symbol: "€" }, // Cyprus
+  "cz": { code: "czk", symbol: "Kč" }, // Czech Republic
+  "dk": { code: "dkk", symbol: "kr" }, // Denmark
+  "dj": { code: "djf", symbol: "Fdj" }, // Djibouti
+  "dm": { code: "dmt", symbol: "$" }, // Dominica
+  "do": { code: "dop", symbol: "$" }, // Dominican Republic
+  "ec": { code: "usd", symbol: "$" }, // Ecuador
+  "eg": { code: "egp", symbol: "£" }, // Egypt
+  "sv": { code: "usd", symbol: "$" }, // El Salvador
+  "gq": { code: "xaf", symbol: "XAF" }, // Equatorial Guinea
+  "er": { code: "ern", symbol: "Nfk" }, // Eritrea
+  "ee": { code: "eek", symbol: "kr" }, // Estonia
+  "et": { code: "etb", symbol: "ታብ" }, // Ethiopia
+  "fj": { code: "fjd", symbol: "FJ$" }, // Fiji
+  "fi": { code: "eur", symbol: "€" }, // Finland
+  "fr": { code: "eur", symbol: "€" }, // France
+  "ga": { code: "cfa", symbol: "XAF" }, // Gabon
+  "gm": { code: "gmd", symbol: "D" }, // Gambia
+  "ge": { code: "gel", symbol: "₾" }, // Georgia
+  "de": { code: "eur", symbol: "€" }, // Germany
+  "gh": { code: "ghs", symbol: "₵" }, // Ghana
+  "gr": { code: "eur", symbol: "€" }, // Greece
+  "gd": { code: "gdp", symbol: "$" }, // Grenada
+  "gt": { code: "gtq", symbol: "Q" }, // Guatemala
+  "gn": { code: "gnf", symbol: "GNF" }, // Guinea
+  "gw": { code: "cfa", symbol: "XOF" }, // Guinea-Bissau
+  "gy": { code: "gyd", symbol: "$" }, // Guyana
+  "ht": { code: "htg", symbol: "G" }, // Haiti
+  "hn": { code: "hnd", symbol: "L" }, // Honduras
+  "hk": { code: "hkd", symbol: "$" }, // Hong Kong
+  "hu": { code: "huf", symbol: "Ft" }, // Hungary
+  "is": { code: "isk", symbol: "kr" }, // Iceland
+  "in": { code: "inr", symbol: "₹" }, // India
+  "id": { code: "idr", symbol: "Rp" }, // Indonesia
+  "ir": { code: "irr", symbol: "﷼" }, // Iran
+  "iq": { code: "iqd", symbol: "ع.د" }, // Iraq
+  "ie": { code: "eur", symbol: "€" }, // Ireland
+  "il": { code: "ils", symbol: "₪" }, // Israel
+  "it": { code: "eur", symbol: "€" }, // Italy
+  "jm": { code: "jmd", symbol: "J$" }, // Jamaica
+  "jp": { code: "jpy", symbol: "¥" }, // Japan
+  "jo": { code: "jod", symbol: "د.ا" }, // Jordan
+  "kz": { code: "kzt", symbol: "₸" }, // Kazakhstan
+  "ke": { code: "kes", symbol: "KSh" }, // Kenya
+  "ki": { code: "australian dollar", symbol: "$" }, // Kiribati
+  "kr": { code: "krw", symbol: "₩" }, // South Korea
+  "kw": { code: "kwd", symbol: "د.ك" }, // Kuwait
+  "kg": { code: "kyrgyzstani som", symbol: "лв" }, // Kyrgyzstan
+  "la": { code: "kip", symbol: "₭" }, // Laos
+  "lv": { code: "eur", symbol: "€" }, // Latvia
+  "lb": { code: "lbp", symbol: "ل.ل" }, // Lebanon
+  "ls": { code: "lsl", symbol: "M" }, // Lesotho
+  "lr": { code: "lrd", symbol: "$" }, // Liberia
+  "ly": { code: "lyd", symbol: "ل.د" }, // Libya
+  "li": { code: "chf", symbol: "₣" }, // Liechtenstein
+  "lt": { code: "ltu", symbol: "₾" }, // Lithuania
+  "lu": { code: "euro", symbol: "€" }, // Luxembourg
+  "mk": { code: "denar", symbol: "ден" }, // North Macedonia
+  "mg": { code: "mga", symbol: "MGA" }, // Madagascar
+  "mw": { code: "mwk", symbol: "MK" }, // Malawi
+  "my": { code: "myr", symbol: "RM" }, // Malaysia
+  "mv": { code: "mvr", symbol: "Rf" }, // Maldives
+  "ml": { code: "cfa", symbol: "CFA" }, // Mali
+  "mt": { code: "mtl", symbol: "Lm" }, // Malta
+  "mh": { code: "mhl", symbol: "USD" }, // Marshall Islands
+  "mr": { code: "mrn", symbol: "UM" }, // Mauritania
+  "mu": { code: "mru", symbol: "MUR" }, // Mauritius
+  "mx": { code: "mxn", symbol: "$" }, // Mexico
+  "fm": { code: "micronesian", symbol: "$" }, // Micronesia
+  "md": { code: "mdl", symbol: "MDL" }, // Moldova
+  "mc": { code: "mco", symbol: "€" }, // Monaco
+  "mn": { code: "mng", symbol: "₮" }, // Mongolia
+  "me": { code: "eur", symbol: "€" }, // Montenegro
+  "ma": { code: "mad", symbol: "MAD" }, // Morocco
+  "mz": { code: "mzn", symbol: "MT" }, // Mozambique
+  "mm": { code: "mmk", symbol: "Ks" }, // Myanmar (Burma)
+  "na": { code: "nad", symbol: "$" }, // Namibia
+  "nr": { code: "aud", symbol: "$" }, // Nauru
+  "nl": { code: "eur", symbol: "€" }, // Netherlands
+  "nz": { code: "nzd", symbol: "$" }, // New Zealand
+  "ni": { code: "nicaraguan córdoba", symbol: "C$" }, // Nicaragua
+  "ne": { code: "xaf", symbol: "CFA" }, // Niger
+  "ng": { code: "ngn", symbol: "₦" }, // Nigeria
+  "no": { code: "nok", symbol: "kr" }, // Norway
+  "np": { code: "npr", symbol: "NPR" }, // Nepal
+  "om": { code: "omr", symbol: "ر.ع" }, // Oman
+  "pk": { code: "pkr", symbol: "₨" }, // Pakistan
+  "pa": { code: "panama", symbol: "$" }, // Panama
+  "py": { code: "pyg", symbol: "₲" }, // Paraguay
+  "pe": { code: "pen", symbol: "S/" }, // Peru
+  "ph": { code: "php", symbol: "₱" }, // Philippines
+  "pl": { code: "pln", symbol: "zł" }, // Poland
+  "pt": { code: "eur", symbol: "€" }, // Portugal
+  "qa": { code: "qar", symbol: "ر.ق" }, // Qatar
+  "re": { code: "re", symbol: "EUR" }, // Réunion (French overseas territory)
+  "ro": { code: "ron", symbol: "RON" }, // Romania
+  "ru": { code: "rub", symbol: "₽" }, // Russia
+  "rw": { code: "rwf", symbol: "FRW" }, // Rwanda
+  "kn": { code: "kna", symbol: "$" }, // Saint Kitts and Nevis
+  "lc": { code: "lca", symbol: "$" }, // Saint Lucia
+  "vc": { code: "vct", symbol: "$" }, // Saint Vincent and the Grenadines
+  "ws": { code: "wst", symbol: "T" }, // Samoa
+  "sm": { code: "euro", symbol: "€" }, // San Marino
+  "st": { code: "stp", symbol: "Db" }, // São Tomé and Príncipe
+  "sa": { code: "sar", symbol: "ر.س" }, // Saudi Arabia
+  "sn": { code: "xaf", symbol: "CFA" }, // Senegal
+  "rs": { code: "rsd", symbol: "дин" }, // Serbia
+  "sc": { code: "scr", symbol: "₨" }, // Seychelles
+  "sl": { code: "sll", symbol: "Le" }, // Sierra Leone
+  "sg": { code: "sgd", symbol: "$" }, // Singapore
+  "sk": { code: "skk", symbol: "Sk" }, // Slovakia
+  "si": { code: "sit", symbol: "SIT" }, // Slovenia
+  "so": { code: "sos", symbol: "Sh" }, // Somalia
+  "za": { code: "zar", symbol: "R" }, // South Africa
+  "es": { code: "eur", symbol: "€" }, // Spain
+  "lk": { code: "lkr", symbol: "Rs" }, // Sri Lanka
+  "sd": { code: "sdg", symbol: "£" }, // Sudan
+  "sr": { code: "srd", symbol: "$" }, // Suriname
+  "se": { code: "sek", symbol: "kr" }, // Sweden
+  "ch": { code: "chf", symbol: "₣" }, // Switzerland
+  "sy": { code: "syp", symbol: "ل.س" }, // Syria
+  "tj": { code: "tjs", symbol: "SM" }, // Tajikistan
+  "th": { code: "thb", symbol: "฿" }, // Thailand
+  "tg": { code: "togo", symbol: "XOF" }, // Togo
+  "tk": { code: "tkg", symbol: "K" }, // Tokelau
+  "to": { code: "top", symbol: "T$" }, // Tonga
+  "tt": { code: "ttd", symbol: "$" }, // Trinidad and Tobago
+  "tn": { code: "tnd", symbol: "د.ت" }, // Tunisia
+  "tr": { code: "try", symbol: "₺" }, // Turkey
+  "tm": { code: "tmr", symbol: "TMT" }, // Turkmenistan
+  "tc": { code: "tct", symbol: "TCT" }, // Turks and Caicos Islands
+  "tv": { code: "aud", symbol: "$" }, // Tuvalu
+  "ug": { code: "ugx", symbol: "USh" }, // Uganda
+  "ua": { code: "uah", symbol: "₴" }, // Ukraine
+  "ae": { code: "aed", symbol: "د.إ" }, // United Arab Emirates
+  "gb": { code: "gbp", symbol: "£" }, // United Kingdom
+  "us": { code: "usd", symbol: "$" }, // United States
+  "uy": { code: "uyc", symbol: "$" }, // Uruguay
+  "uz": { code: "uzs", symbol: "лв" }, // Uzbekistan
+  "vu": { code: "vuv", symbol: "Vt" }, // Vanuatu
+  "ve": { code: "vef", symbol: "Bs.F" }, // Venezuela
+  "vn": { code: "vnd", symbol: "₫" }, // Vietnam
+  "wf": { code: "wfp", symbol: "XOF" }, // Wallis and Futuna
+  "ye": { code: "yen", symbol: "ر.ي" }, // Yemen
+  "zm": { code: "zmw", symbol: "ZK" }, // Zambia
+  "zw": { code: "zwd", symbol: "$" }  // Zimbabwe
+};
+
+
+const AddCoinPopUp = ({ isOpen, setOpen }) => {
   const [stripePromise, setStripePromise] = useState(null);
   const [addCoin, setAddCoin] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState(null);
+  const [totalPayable, setTotalPayable] = useState(null);
   const [addingCoin, setAddingCoin] = useState(false);
   const [STCLocalCurrencyRate, setSTCLocalCurrencyRate] = useState();
   const [openStripe, setOpenStripe] = useState(false);
   const [localCurrency, setLocalCurrency] = useState({ code: 'usd', symbol: '$' });
+  const showAlert = useAlert();
 
   // Utils - Determine Currency based on Longitude Latitude
-  function determineCurrency(lat, lon) {
-    // USD - United States (include Alaska & Hawaii)
-    if (lat >= 18 && lat <= 72 && lon >= -178 && lon <= -67) {
-      return { code: 'usd', symbol: '$' };
+  async function determineCurrency(lat, lon) {
+    // https://nominatim.org/release-docs/develop/api/Reverse/
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+
+      const data = await response.json();
+      const address = data.address;
+      const countryCode = address.country_code;
+
+      // Map currency
+      if (response.ok) {
+        return countryCurrencyMap[countryCode] || { code: "usd", symbol: "$" };
+      }
+    } catch (error) {
+      console.error('Error retireving location:', error);
     }
 
-    // GBP - United Kingdom
-    if (lat >= 49 && lat <= 61 && lon >= -8 && lon <= 2) {
-      return { code: 'gbp', symbol: '£' };
-    }
-
-    // AED - United Arab Emirates
-    if (lat >= 22 && lat <= 26 && lon >= 51 && lon <= 57) {
-      return { code: 'aed', symbol: 'د.إ' };
-    }
-
-    // EUR - Europe Continent
-    if (
-      (lat >= 35 && lat <= 72 && lon >= -9 && lon <= 68)
-    ) {
-      return { code: 'eur', symbol: '€' };
-    }
-
-    // If no match found
+    // Default return value if no match found or error occurs
     return { code: 'usd', symbol: '$' };
   };
 
   // Get User Location & Local Currency
-  function getLocationCurrency() {
+  async function getLocationCurrency() {
     // No error checking required, default currency to USD if error
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
 
-          const currency = determineCurrency(latitude, longitude);
+          const currency = await determineCurrency(latitude, longitude);
 
           setLocalCurrency(currency);
         },
@@ -80,40 +270,38 @@ const AddCoinPopUp = ({ isOpen, setOpen, updateWalletBalance, setAlertInfo }) =>
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // Check form is valid
+    // Validate input
     if (!addCoin) {
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: 'Please Enter a Valid Amount.',
-      }))
+      showAlert({ severity: "error", message: "Please Enter a Valid Amount." });
       return;
     }
 
-    // Calc 1 STC in USD (e.g. 1USD = 1STC)
-    const stcUsdRate = 1;
-    const stcUsd = 1 / stcUsdRate;
-    const usdAmount = (addCoin * stcUsd).toFixed(2);
+    try {
+      // Constants
+      const STC_USD_RATE = 1; // 1 USD = 1 STC
+      const stcUsd = 1 / STC_USD_RATE; // STC/USD conversion rate
+      const usdAmount = (addCoin * stcUsd).toFixed(2);
 
-    // Convert paymentAmount to local currency (skip if USD)
-    if (localCurrency.code != 'usd') {
-      // Get latest exchange rate (1 USD = ?GBP)
-      const currencyRate = await fetchExchangeRate();
+      // Currency conversion
+      const currencyRate = localCurrency.code !== 'usd'
+        ? await fetchExchangeRate() || 1
+        : 1;
 
-      // Convert and set paymentAmount
-      if (currencyRate) {
-        const convertedAmount = usdAmount * currencyRate;
-        const roundedAmount = convertedAmount.toFixed(2);
-        setPaymentAmount(roundedAmount);
-        setSTCLocalCurrencyRate(stcUsd * currencyRate);
-      } else {
-        // Set to USD if ever fail to convert
-        setPaymentAmount(usdAmount);
-        setLocalCurrency({ code: 'usd', symbol: '$' })
-      }
-    } else {
-      setPaymentAmount(usdAmount);
+      // Calculate payable amount
+      const convertedAmount = usdAmount * currencyRate;
+      const payable = (convertedAmount * (1 + PROCESSING_FEE)).toFixed(2);
+
+      // Update state
+      setTotalPayable(payable);
+      setSTCLocalCurrencyRate(stcUsd * currencyRate);
+      setOpenStripe(true);
+    } catch (error) {
+      // Calculate payable
+      const payable = (usdAmount * (1 + PROCESSING_FEE)).toFixed(2);
+
+      // Set states
+      setTotalPayable(payable);
+      setLocalCurrency({ code: 'usd', symbol: '$' })
     }
 
     // Show Stripe Payment Gateway
@@ -231,17 +419,17 @@ const AddCoinPopUp = ({ isOpen, setOpen, updateWalletBalance, setAlertInfo }) =>
                   stripe={stripePromise}
                   options={{
                     mode: 'payment',
-                    amount: Math.round(paymentAmount * 100),
+                    amount: Math.round(totalPayable * 100),
                     currency: localCurrency.code,
                     appearance,
                   }}
                 >
                   <CheckOutForm
                     addCoin={addCoin}
-                    paymentAmount={paymentAmount}
+                    totalPayable={totalPayable}
                     localCurrency={localCurrency}
                     STCLocalCurrencyRate={STCLocalCurrencyRate}
-                    setAlertInfo={setAlertInfo}
+                    processFee={PROCESSING_FEE}
                     onClose={onPopUpClose}
                   />
                 </Elements>

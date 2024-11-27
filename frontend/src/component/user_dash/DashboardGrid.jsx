@@ -2,13 +2,20 @@ import React, { useState, useEffect } from "react";
 import profileImage from '/avatar.svg';
 import styles from "./Dashboard.module.css"
 //import CircularProgress from "./CircularProgress";
-import token from "/bitcoin-2207.svg"
+import token from "/wallet-coin.png"
 import { Link } from "react-router-dom";
 import History from "./history/History";
+import { useDispatch, useSelector } from "react-redux";
+import { setWalletBalance } from "../../Store/Slices/Wallet";
 
+const API_BASE_URL =
+    process.env.NODE_ENV === "development"
+        ? "http://localhost:5000"
+        : process.env.Deployed_link;
 
 const DashboardGrid = () => {
     const [profile, setProfile] = useState(null);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (!sessionStorage.getItem('jwtToken')) {
@@ -17,17 +24,11 @@ const DashboardGrid = () => {
             window.location.href = '/';
         }
     }, [sessionStorage.getItem('jwtToken')]);
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const token = sessionStorage.getItem('jwtToken');
-
-                //  mit prajapati (development and production link support)
-                const API_BASE_URL =
-                    process.env.NODE_ENV === "development"
-                        ? "http://localhost:5000"
-                        : process.env.Deployed_link;
-
                 const response = await fetch(`${API_BASE_URL}/api/user_dashboard`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -43,6 +44,24 @@ const DashboardGrid = () => {
 
         fetchProfile();
     }, []);
+
+    // Fetch Wallet Data on Mount
+    useEffect(() => {
+        const fetchWallet = async () => {
+            const response = await fetch(`${API_BASE_URL}/api/get_wallet`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`,
+                },
+            });
+
+            const data = await response.json();
+
+            dispatch(setWalletBalance(data.balance));
+        }
+
+        fetchWallet();
+    }, [])
 
     return (
         <div className={` h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 p-6 text-white min-h-screen ${styles.dashback} ${styles.starAnimation}`}>
@@ -143,6 +162,7 @@ const ActiveStakesSection = () => {
 
         fetchActiveStakes();
     }, []);
+    
     return (
         <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
             <span className="text-lg font-semibold">Active Stakes</span>
@@ -187,12 +207,16 @@ const ActiveStakesSection = () => {
 }
 
 const PointsSection = () => {
+    const walletBalance = useSelector((state) => state.walletState.balance);
+
     return (
         <div className={`bg-gray-800 p-6 rounded-lg shadow-md shadow-[#20C997] ${styles.float} size-full`}>
             <p className="text-lg font-semibold">Your Balance</p>
             <div className="flex items-center">
                 <img src={token} alt="" className="w-12 h-12 p-1" />
-                <span className="text-4xl font-bold text-[#20C997]">3456</span>
+                <span className="text-4xl font-bold text-[#20C997]">
+                    {walletBalance}
+                </span>
                 {/*<button className="mt-1 px-4 py-2 text-white bg-[#20C997]">
                     Spend Tokens
                 </button>*/}

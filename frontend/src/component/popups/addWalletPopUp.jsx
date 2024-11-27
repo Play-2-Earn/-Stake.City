@@ -5,10 +5,19 @@ import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import Button from "./popups_component/button";
 import { X, Wallet } from "lucide-react";
+import { useDispatch } from 'react-redux';
+import useAlert from '../../Hooks/useAlert';
+import { setWalletAddress } from '../../Store/Slices/Wallet';
 
-const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin, setWalletData, setAlertInfo }) => {
+const API_BASE_URL = process.env.NODE_ENV === "development"
+  ? "http://localhost:5000"
+  : process.env.Deployed_link;
+
+const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
   const [walletAddrInput, setWalletAddrInput] = useState(null);
   const [connectingWallet, setConnectingWallet] = useState(false);
+  const showAlert = useAlert();
+  const dispatch = useDispatch();
 
   // Handler - On Pop Up Close
   function onPopUpClose() {
@@ -24,12 +33,7 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin, setWallet
     // Check if wallet address is valid
     if (!walletAddrInput) {
       // Set alert info on successful connection
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: 'Please Enter a Valid Address.',
-      }))
+      showAlert({ severity: "error", message: "Please Enter a Valid Address." });
       return;
     }
 
@@ -41,17 +45,12 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin, setWallet
       const response = await connectWallet();
 
       // Handle API response
-      if (response === "200") {
+      if (response === 200) {
         // Store Wallet Address
-        setWalletData((prevState) => ({ ...prevState, address: walletAddrInput }));
+        dispatch(setWalletAddress(walletAddrInput));
 
         // Set alert info on successful connection
-        setAlertInfo((prevState) => ({
-          ...prevState,
-          open: true,
-          severity: 'success',
-          message: 'Wallet Connected.',
-        }))
+        showAlert({ severity: "success", message: "Wallet Conneted." });
 
         // Open Redeem Wallet Pop Up after Wallet is Connected
         setOpenRedeemCoin(true);
@@ -61,12 +60,8 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin, setWallet
       console.error("Error connecting wallet:", error);
 
       // Set alert info on fail connection
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: 'Error Connecting Wallet. Try Again.',
-      }))
+      showAlert({ severity: "error", message: "Error Connecting Wallet. Try Again." });
+
     } finally {
       onPopUpClose();
     }
@@ -74,21 +69,31 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin, setWallet
 
   // Simulate API Call - Connect Wallet
   async function connectWallet() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve("200");
-      }, 1500);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/update_wallet`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wallet_addr: walletAddrInput,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error("Error connecting wallet", response.status)
+      }
+
+      return response.status
+    } catch (error) {
+      console.error('Error Connecting Wallet', error.message);
+    }
   }
 
   // Alert Message - Connect Wallet before Redeem
   useEffect(() => {
-    setAlertInfo((prevState) => ({
-      ...prevState,
-      open: true,
-      severity: 'error',
-      message: 'Connect Wallet before Redeem.',
-    }))
+    showAlert({ severity: "error", message: "Connect Wallet before Redeem." });
   }, [])
 
 

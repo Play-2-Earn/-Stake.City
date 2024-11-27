@@ -1,9 +1,11 @@
 import { useElements, useStripe } from "@stripe/react-stripe-js";
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js';
+import useAlert from "../../../Hooks/useAlert";
 
-const expressCheckout = ({ addCoin, setAlertInfo, onClose, clientSecret }) => {
+const expressCheckout = ({ addCoin, onClose, clientSecret }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const showAlert = useAlert();
 
   // Payment Button Styling
   const expressCheckoutOptions = {
@@ -59,30 +61,14 @@ const expressCheckout = ({ addCoin, setAlertInfo, onClose, clientSecret }) => {
     // Handler Payment Result
     if (error) {
       setErrorMessage(error.message);
-
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: error.message,
-      }));
+      showAlert({severity: "error", message: error.message});
     } else if (paymentIntent.status == 'succeeded') {
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'success',
-        message: `Successfully added ${addCoin} STC !`,
-      }));
+      showAlert({severity: "success", message: `Successfully added ${addCoin} STC !`});
 
       // Close Pop Up
       onClose();
     } else {
-      setAlertInfo((prevState) => ({
-        ...prevState,
-        open: true,
-        severity: 'error',
-        message: `Unexpected State`,
-      }));
+      showAlert({severity: "error", message: "Unexpected State"});
     }
   };
 

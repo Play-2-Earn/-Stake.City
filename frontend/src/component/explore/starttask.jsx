@@ -24,6 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
+const API_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000"
+    : process.env.Deployed_link;
 
 const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
   const [chatMessage, setChatMessage] = useState("");
@@ -62,6 +66,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         });
     }
   }, [task]);
+  
   const handleSendMessage = () => {
     const token = sessionStorage.getItem("jwtToken");
 

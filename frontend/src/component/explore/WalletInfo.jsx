@@ -11,9 +11,13 @@ import AddWalletPopUp from '../popups/addWalletPopUp';
 import RedeemCoinPopUp from "../popups/redeemCoinPopUp";
 import AddCoinPopUp from "../popups/addCoinPopUp";
 import { formatFiat } from "../lib/utils.js";
+import { useDispatch, useSelector } from "react-redux";
 
-const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
-  const [walletBalance, setwalletBalance] = useState(0);
+const WalletInfo = ({ userData }) => {
+  // const [walletBalance, setwalletBalance] = useState(0);
+  const dispatch = useDispatch();
+  const walletBalance = useSelector((state) => state.walletState.balance)
+  const walletAddr = useSelector((state) => state.walletState.wallet_addr)
   const [usdBalance, setUsdBalance] = useState(0)
   const [openWalletDetail, setOpenWalletDetail] = useState(false);
   const [openAddWallet, setOpenAddWallet] = useState(false);
@@ -24,7 +28,7 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
 
   // Handler - Copy to Clipboard
   function handleCopy() {
-    navigator.clipboard.writeText(walletData.address);
+    navigator.clipboard.writeText(walletAddr);
     setTooltipText("Copied!"); // Temporarily change tooltip text
 
     // Reset tooltip text after a short delay
@@ -33,55 +37,32 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
 
   // Handler - Open Redeem Coin Pop Up
   function handleOpenRedeemCoin() {
-    if (walletData.address) {
+    if (walletAddr) {
       setOpenRedeemCoin(true) // Open Redeem Wallet Pop Up
     } else {
       setOpenNote(true); // Open note before Add Wallet Pop Up
     }
   }
 
-  // Utils - Update Wallet Balance ["INCREASE" | "DECREASE"]
-  function updateWalletBalance(type, amount) {
-    let newWalletBalance = 0;
-
-    type === "INCREASE" ?
-      newWalletBalance = walletBalance + amount : // INCREASE
-      newWalletBalance = walletBalance - amount   // DECREASE
-
-    // Update Wallet Data
-    setWalletData((prevState) => ({
-      ...prevState,
-      balance: newWalletBalance
-    }))
-
-    console.log(newWalletBalance);
-  }
-
-  // Fetch Wallet Balance on Mount
+  // Convert Wallet Balance STC to USD on Mount
   useEffect(() => {
-    // Simulate Retrived Balance from Server
-    const retrievedBalance = Number(walletData.balance);
-
-    // Set Wallet Balance
-    setwalletBalance(retrievedBalance);
-
-    // Set USD Balance
-    // 1 Stake Coin = 0.1 USD
-    const rate = 0.1
-    const convertedBalance = (retrievedBalance * rate)
+    // Convert to USD Rate
+    // 1 Stake Coin = 1 USD
+    const rate = 1
+    const convertedBalance = (walletBalance * rate)
     setUsdBalance(convertedBalance);
-  }, [walletData])
+  }, [walletBalance])
 
   return (
     <>
       {/* Wallet */}
-      <div className="fixed top-[20px] right-[20px] z-[1000]">
+      <div className="fixed top-[20px] right-[20px] z-[1000] opacity-95">
         <Popover.Root open={openWalletDetail} onOpenChange={(open) => setOpenWalletDetail(open)}>
           {/* Btn - Wallet Icon */}
           <Popover.Trigger>
             <div
               onClick={() => setOpenWalletDetail(true)}
-              className="bg-gradient-to-r from-[#0D1B2A] to-[#33669C] p-[10px] rounded-full text-[#20C997] border-[#20C997] border shadow-[0_0_10px_#20C997] hover:scale-[125%] transition-transform"
+              className="bg-gradient-to-r from-[#0D1B2A] to-[#33669C] p-[10px] rounded-full text-[#20C997] border-[#20C997] border shadow-[0_0_10px_#20C997] hover:scale-[120%] transition-transform pointer-events-none cursor-none"
             >
               <LuWallet size={23} />
             </div>
@@ -97,7 +78,7 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
                 transition={{ duration: 0.1, ease: "easeIn" }}
               >
                 <Popover.Content
-                  className="absolute top-0 right-[-1.5em] w-fit flex flex-col items-center gap-1 py-3 pb-5 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-50 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
+                  className="absolute -top-2 right-[-1.5em] w-fit flex flex-col items-center gap-1 py-3 pb-5 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-100 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
                   key="wallet-detail"
                 >
                   {/*  Btn - Close Wallet Details */}
@@ -108,18 +89,18 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
                   </button>
 
                   {/* Title - Wallet Balance */}
-                  <span className="text-sm text-center text-[#F0F3F5] w-full">
-                    YiKai's Balance
+                  <span className="text-sm text-center text-[#F0F3F5] w-full pointer-events-none">
+                    {userData.full_name}'s Balance
                   </span>
 
                   {/* Info - Wallet Address */}
-                  {walletData.address ?
+                  {walletAddr ?
                     <div
                       onClick={handleCopy}
                       className="relative flex flex-row items-center gap-2 hover:bg-gray-700 px-2 rounded-xl group cursor-pointer"
                     >
                       <span className="text-xs font-thin text-gray-500 w-[5em] text-center overflow-hidden">
-                        {`${walletData.address.slice(0, 4)}...${walletData.address.slice(-3)}`}
+                        {`${walletAddr.slice(0, 4)}...${walletAddr.slice(-3)}`}
                       </span>
                       <IoCopy size={10} />
 
@@ -132,7 +113,7 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
                       </>
                     </div>
                     :
-                    <span className="text-xs font-thin text-gray-500 w-full text-center text-nowrap">
+                    <span className="text-xs font-thin text-gray-500 w-full text-center text-nowrap pointer-events-none">
                       <em>connect wallet</em>
                     </span>
                   }
@@ -192,8 +173,6 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
           isOpen={openAddWallet}
           setOpenAddWallet={setOpenAddWallet}
           setOpenRedeemCoin={setOpenRedeemCoin}
-          setWalletData={setWalletData}
-          setAlertInfo={setAlertInfo}
         />
       }
 
@@ -201,17 +180,12 @@ const WalletInfo = ({ walletData, setWalletData, setAlertInfo }) => {
       <RedeemCoinPopUp
         isOpen={openRedeemCoin}
         setOpen={setOpenRedeemCoin}
-        walletBalance={walletBalance}
-        updateWalletBalance={updateWalletBalance}
-        setAlertInfo={setAlertInfo}
       />
 
       {/* Pop Up - Add Stake Coins */}
       <AddCoinPopUp
         isOpen={openAddCoin}
         setOpen={setOpenAddCoin}
-        updateWalletBalance={updateWalletBalance}
-        setAlertInfo={setAlertInfo}
       />
     </>
   )
