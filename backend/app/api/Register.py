@@ -95,7 +95,7 @@ def register():
     if not validate_password(password):
         return jsonify({"error": "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."}), 400
 
-    if not validate_location(location):
+    if location and  not validate_location(location):
          return jsonify({"error": "Invalid location format. The location should be in the format 'state, Country', with only alphabetic characters and a comma followed by a space (e.g., 'California, USA')."}), 400
 
     # Ensure terms and conditions are accepted
@@ -120,7 +120,7 @@ def register():
         email=email,
         mobile=mobile,
         terms_accepted=terms_accepted,
-        location=location
+        location= location
     )
 
     # Save the user temporarily
