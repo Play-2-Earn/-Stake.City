@@ -24,7 +24,7 @@ class User(Document):
     gender = StringField()
     terms_accepted = BooleanField(default=False)
     verified_email = BooleanField(default=False)
-    location = StringField(required=True) # Location specific to the Player mode
+    location = StringField() # Location specific to the Player mode
 
 class Login(Document):
     user_name = ReferenceField(User, required=True)  # Reference to the User model (Foreign key)

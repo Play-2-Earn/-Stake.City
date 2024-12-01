@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import './LeaderBoard.css'
+import '../styles/LeaderBoard.css'
 import UserRow from './UserRow';
 import axios from 'axios';
 import Loader from './Loader';
+import Header from '../header';
+import Footer from '../footer';
 
 const LeaderBoard = () => {
   const [active, setActive] = useState('weekly');
@@ -17,7 +19,7 @@ const LeaderBoard = () => {
         const response = await axios.get('http://localhost:5000/api/get_all_users_sorted');
         console.log(response.data.users);
         // Ensure that the data is an array, or set an empty array as fallback
-        setPlayers(response.data.users );
+        setPlayers(response.data.users);
         setLoad(false);
       } catch (error) {
         console.error('Error fetching players:', error);
@@ -25,7 +27,7 @@ const LeaderBoard = () => {
     };
     getPlayers();
   }, []);
-  
+
   const showRank = () => {
     const container = document.querySelector('.containerr > .leaderbody > .leaderlist');
     const child = container.querySelector('.currentuser');
@@ -33,28 +35,29 @@ const LeaderBoard = () => {
     const speed = 1; // Lower value means faster scrolling
 
     const scrollAnimation = () => {
-        const currentScroll = container.scrollTop;
-        const distance = targetScroll - currentScroll;
+      const currentScroll = container.scrollTop;
+      const distance = targetScroll - currentScroll;
 
-        if (Math.abs(distance) < 1) {
-            container.scrollTop = targetScroll; // Snap to the target position
-            return;
-        }
+      if (Math.abs(distance) < 1) {
+        container.scrollTop = targetScroll; // Snap to the target position
+        return;
+      }
 
-        const step = distance / speed; // Adjust the step size based on speed
-        container.scrollTop += step;
+      const step = distance / speed; // Adjust the step size based on speed
+      container.scrollTop += step;
 
-        requestAnimationFrame(scrollAnimation); // Recursively call for smooth animation
+      requestAnimationFrame(scrollAnimation); // Recursively call for smooth animation
     };
 
     scrollAnimation();
-};
+  };
 
-  const hide = {visibility : 'hidden'}
-  const showw = {visibility : 'visible'}
+  const hide = { visibility: 'hidden' }
+  const showw = { visibility: 'visible' }
 
 
   return (
+
     <div className='containerr'>
       <div className='head'>
         <div className='west'>
@@ -73,11 +76,11 @@ const LeaderBoard = () => {
         <div className='leaderlist'>
           {load ? <Loader /> : (
             players.length > 0 ? (
-              players.map((competitor, index) =>   (
+              players.map((competitor, index) => (
                 <UserRow competitor={competitor} index={index} key={index} />
               ))
             ) : (
-              <p style={{width:'100%' , textAlign:'center'}}>No Players Found</p>
+              <p style={{ width: '100%', textAlign: 'center' }}>No Players Found</p>
             )
           )}
         </div>

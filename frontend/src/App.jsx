@@ -6,6 +6,8 @@ import UserDashboard from './component/user_dash/Dashboard';
 import ReleaseStake from './component/release_stakes';
 import Explore from './component/Explore'
 import LeaderBoard from './component/Leaderboard/LeaderBoard';
+import ContactUs from './component/Contactus';
+
 function App() {
 
   const [center, setCenter] = useState(null);
@@ -24,6 +26,7 @@ function App() {
         <Route path='/leaderboard' element={<LeaderBoard />} />
         <Route path="/userdashboard" element={<UserDashboard />}> </Route>
         <Route path="/releaseStake" element={<ReleaseStake />}> </Route>
+        <Route path="/contactus" element={<ContactUs />}> </Route>
       </Routes>
     </BrowserRouter>
 

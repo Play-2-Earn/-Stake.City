@@ -29,7 +29,7 @@ body {
     background-position: 40% 61%;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    height: 34em;
+    /* height: 34em; */
 }
 
 .custom-paragraph {
@@ -59,27 +59,9 @@ body {
     margin-left: auto;
 }
 
-/* .chain_1 {
-    position: relative;
-    width: 100vw; 
-    overflow: hidden;
-    margin: auto auto;
-}
-
-.chain1_img{
-    position: absolute;
-    top: 0;
-    left: 5%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: auto;
-    transition: transform 0.1s ease-out;
-} */
-
-
 .last_element {
     background-image: url('./last_ele.png');
-    height: 500px;
+    /* height: 500px; */
     background-size: 50%;
     background-position: 50% 19%;
     background-repeat: no-repeat;

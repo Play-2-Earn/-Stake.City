@@ -15,6 +15,18 @@ const Globe = () => {
     const width = container.offsetWidth;
     const height = container.offsetHeight;
 
+    // Function to adjust the camera and globe size based on screen width
+    const adjustGlobeSize = (camera) => {
+      const screenWidth = window.innerWidth;
+
+      // Set camera position and globe scale based on screen width
+      if (screenWidth < 768) { // Small screen (mobile)
+        camera.position.z = 3.8; // Zoom out a bit more for mobile
+      } else { // Larger screens (tablet, desktop)
+        camera.position.z = 2; // Keep original camera position for larger screens
+      }
+    };
+
     // Set up the Three.js renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -23,7 +35,7 @@ const Globe = () => {
 
     // Set up the camera
     const camera = new THREE.PerspectiveCamera(65, width / height, 0.1, 1000);
-    camera.position.z = 2;
+    adjustGlobeSize(camera); // Adjust globe size on mount based on screen size
 
     // Set up the scene
     const scene = new THREE.Scene();
@@ -116,6 +128,7 @@ const Globe = () => {
       const newHeight = container.offsetHeight;
       renderer.setSize(newWidth, newHeight);
       camera.aspect = newWidth / newHeight;
+      adjustGlobeSize(camera); // Adjust globe size on resize
       camera.updateProjectionMatrix();
     };
     window.addEventListener('resize', handleResize);

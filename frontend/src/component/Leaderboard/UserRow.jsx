@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import './UserRow.css'
+import '../styles/UserRow.css'
 import axios from 'axios';
 
 const UserRow = ({competitor , index}) => {
