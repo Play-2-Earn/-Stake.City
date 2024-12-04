@@ -5,7 +5,6 @@ import GamifiedTaskPopup from "./starttask";
 import SearchBar from "./searchbar";
 import UserInfo from './UserInfo';
 import WalletInfo from './WalletInfo';
-import AlertMessage from './AlertMessage';
 import WelcomePopup from './welcomepopup';
 import Taskbar from './Taskbar';
 import ZoomOutButton from './ZoomOutButton';
@@ -14,7 +13,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
 import { Avatar } from '@radix-ui/react-avatar';
 import { useDispatch, useSelector } from 'react-redux';
-import { setWalletAddress, setWalletBalance } from '../../Store/Slices/Wallet';
+import { setLockedAmount, setWalletAddress, setWalletBalance } from '../../Store/Slices/Wallet';
 import useAlert from '../../Hooks/useAlert';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -38,7 +37,6 @@ const MapboxMap = ({ showControls, q_id }) => {
   const [isLink, setIsLink] = useState(false);
   const markers = useRef([]);
   const [userData, setUserData] = useState(null);
-  const { openAlert } = useSelector((state) => state.alertState)
   const dispatch = useDispatch();
   const showAlert = useAlert();
 
@@ -60,8 +58,10 @@ const MapboxMap = ({ showControls, q_id }) => {
       });
 
       const data = await response.json();
+      console.log(data);
 
       dispatch(setWalletBalance(data.balance));
+      dispatch(setLockedAmount(data.locked_amount));
       dispatch(setWalletAddress(data.wallet_addr));
     }
 
@@ -114,6 +114,7 @@ const MapboxMap = ({ showControls, q_id }) => {
             share_url: data.share_url,
             navigation_url: data.navigation_url
           });
+
           handleMarkerClick(data);
         })
         .catch((error) => {
@@ -156,14 +157,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     fetchLocations();
   }, []);
 
-  // Create markers for each location
-  useEffect(() => {
-    console.log("tasks", allTasks);
-    allTasks.forEach((task) => {
-      console.log("task", task);
-      createMarker(task.coordinates, task);
-    });
-  }, [allTasks]);
+
 
   const sampleTask = {
     title: "Magical Park Cleanup Quest",
@@ -171,8 +165,6 @@ const MapboxMap = ({ showControls, q_id }) => {
     location: "Central Park, New York",
     stakeAmount: 1000,
   };
-
-
 
   // UI button handling functions
   const handleSearch = async (newQuery) => {
@@ -261,9 +253,18 @@ const MapboxMap = ({ showControls, q_id }) => {
   };
 
   const createMarker = (coordinates, task) => {
-    const marker = new mapboxgl.Marker()
+    // Custom Marker
+    const customMarker = document.createElement('div');
+    customMarker.style.backgroundImage = 'url(/marker.png)';
+    customMarker.style.width = '60px';
+    customMarker.style.height = '60px';
+    customMarker.style.backgroundSize = 'cover';
+
+    // Declare Marker
+    const marker = new mapboxgl.Marker({element: customMarker, offset: [0, -30]})
       .setLngLat(coordinates)
       .addTo(mapRef.current);
+
     markers.current.push({ marker, coordinates });
     // Disable map interaction when hovering over the marker
     marker.getElement().addEventListener('mouseenter', () => {
@@ -301,13 +302,14 @@ const MapboxMap = ({ showControls, q_id }) => {
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 20;
-  const MIN_ZOOM_FOR_MARKERS = 7; // Update this to control when markers appear
+  const MIN_ZOOM_FOR_MARKERS = 15; // Update this to control when markers appear
   const secondsPerRevolution = 240;
   let mouseHoldTimeout = null;
   let isMouseHeld = false;
 
   const initialZoom = 1;
   const initialCenter = [-1.4, 54.0]; // Centered on the UK
+  const { lng, lat } = longLat || {};
 
   // Function to reset zoom and center to initial values
   const handleZoomReset = () => {
@@ -447,26 +449,24 @@ const MapboxMap = ({ showControls, q_id }) => {
     }
   }, [showControls]);
 
+  // Update Marker(task pin) Visibility
   const updateMarkerVisibility = () => {
     const currentZoom = mapRef.current.getZoom();
     const mapBounds = mapRef.current.getBounds();
 
     markers.current.forEach((marker) => {
-      const isVisible =
-        currentZoom >= MIN_ZOOM_FOR_MARKERS &&
-        mapBounds.contains(marker.coordinates);
+      const isVisible = currentZoom >= MIN_ZOOM_FOR_MARKERS && mapBounds.contains(marker.coordinates);
 
       marker.marker.getElement().style.display = isVisible ? 'block' : 'none';
     });
 
   };
+
+  // Track Mouse Event on the Globe
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.on('zoom', updateMarkerVisibility);
       mapRef.current.on('move', updateMarkerVisibility); // Update when the map moves as well
-
-      // Initial call to set the visibility when the map first loads
-      updateMarkerVisibility();
 
       return () => {
         mapRef.current.off('zoom', updateMarkerVisibility);
@@ -474,6 +474,16 @@ const MapboxMap = ({ showControls, q_id }) => {
       };
     }
   }, []);
+
+  // Create marker for each task location on Mount
+  useEffect(() => {
+    allTasks.forEach((task) => {
+      createMarker(task.coordinates, task);
+    });
+
+    updateMarkerVisibility();
+  }, [allTasks]);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (mapRef.current) {
@@ -490,7 +500,8 @@ const MapboxMap = ({ showControls, q_id }) => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-  const { lng, lat } = longLat || {};
+
+
   return (
     <div>
       <div class="top-rectangle" />
@@ -501,9 +512,6 @@ const MapboxMap = ({ showControls, q_id }) => {
 
       {/* Wallet Info */}
       <WalletInfo userData={userData} />
-
-      {/* Alert - Action Message */}
-      {openAlert && <AlertMessage />}
 
       {/* Globe */}
       <div

@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify, request
 from mongoengine import DoesNotExist
-from ..api.models import User, UserDashboard, Question, Answer,Payment,History,SelectedAnswer
+from ..api.models import User, UserDashboard, Wallet, Question, Answer, Payment, History, SelectedAnswer
 from datetime import datetime
 from flask_cors import CORS, cross_origin
 import jwt
 import os
 # Create a Blueprint for the user dashboard
 dashboard_bp = Blueprint('dashboard', __name__)
-# Badge Names for Answerers/Responders
+# Badge Names for Answerers/Responders (BADGES / PLAYER BADGE)
 ANSWERER_BADGES = [
     "City Sleuth",
     "Urban Whisperer",
@@ -51,7 +51,7 @@ ANSWERER_BADGES = [
     "Urban Navigator Extraordinaire"
 ]
 
-# Badge Names for Staking Users
+# Badge Names for Staking Users (LEVEL / REPUTATION BADGE)
 STAKING_BADGES = [
     "Crypto Seed Sower",
     "Token Tycoon",
@@ -75,22 +75,24 @@ STAKING_BADGES = [
     "Satoshi Sage"
 ]
 
+
 @cross_origin(origin='*')
-@dashboard_bp.route('/api/user_dashboard', methods=['OPTIONS','GET'])
+@dashboard_bp.route('/api/user_dashboard', methods=['OPTIONS', 'GET'])
 def get_user_dashboard():
     if request.method == 'OPTIONS':
         return '', 200
-    #authorize
+    # authorize
     header = request.headers
     auth_token = header.get('Authorization')
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
+
     auth_token = auth_token.split(' ')[1]
     # Verify the token
     try:
         secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
 
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
@@ -99,7 +101,7 @@ def get_user_dashboard():
         return jsonify({"message": "Invalid token."}), 401
     # Fetch the user by user_name
     user = User.objects(user_name=user_name).first()
-    
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -142,8 +144,9 @@ def get_user_dashboard():
 
     # Log a message or take an action based on the reputation increase
     if reputation_increased:
-        print(f"User {dashboard.user_name}'s reputation has increased to level {dashboard.level}.")
-    
+        print(f"User {dashboard.user_name}'s reputation has increased to level {
+              dashboard.level}.")
+
     # Save updated information
     dashboard.last_updated = datetime.utcnow()  # Update last updated timestamp
     dashboard.save()  # Ensure the dashboard saves after updates
@@ -155,18 +158,21 @@ def get_user_dashboard():
         "email": dashboard.email,
         "mobile": dashboard.mobile,
         "level": dashboard.level,
-        "reputation_badge": dashboard.asker_badge_name,
-        "player_badge": dashboard.responder_badge_name,
-        "multiplier": round(dashboard.multiplier, 1),  # Round to 1 decimal place
+        "reputation_badge": dashboard.asker_badge_name,  # Staking Badge
+        "player_badge": dashboard.responder_badge_name,  # Answer Badge
+        # Round to 1 decimal place
+        "multiplier": round(dashboard.multiplier, 1),
         "stake_amount": total_stake,
         "total_staked": dashboard.total_staked,
         "total_received": total_received,
         "total_questions_asked": total_questions_asked,
         "total_answers_provided": total_answers_provided,
-        "last_updated": dashboard.last_updated.strftime('%Y-%m-%d %H:%M:%S')
+        "last_updated": dashboard.last_updated.strftime('%Y-%m-%d %H:%M:%S'),
+        "points_balance": dashboard.points_balance,
     }
 
     return jsonify(response), 200
+
 
 def get_responder_badge_name(user):
     # Fetch all answers provided by the user
@@ -176,7 +182,6 @@ def get_responder_badge_name(user):
     total_likes = sum(answer.likes for answer in answers)
 
     # Determine badge level based on total likes
-
     if total_likes < 5:
         badge_level = 0  # Level 1 badge
     elif total_likes < 10:
@@ -281,6 +286,8 @@ def get_responder_badge_name(user):
         badge_level = 49  # Cap at Level 50 badge (last badge)
 
     return ANSWERER_BADGES[badge_level]  # Return the badge name based on level
+
+
 def update_reputation_and_badge(dashboard):
     # Define thresholds for levels with their respective multipliers and required staked amounts
     LEVEL_THRESHOLDS = {
@@ -294,20 +301,20 @@ def update_reputation_and_badge(dashboard):
         8: (1.7, 30000),   # Level 8: Multiplier = 1.7, Staked Amount = 7000
         9: (1.8, 45000),   # Level 9: Multiplier = 1.8, Staked Amount = 8000
         10: (1.9, 60000),  # Level 10: Multiplier = 1.9, Staked Amount = 9000
-        11: (2.0, 80500), # Level 11: Multiplier = 2.0, Staked Amount = 10500
-        12: (2.1, 100000), # Level 12: Multiplier = 2.1, Staked Amount = 12000
-        13: (2.2, 113500), # Level 13: Multiplier = 2.2, Staked Amount = 13500
-        14: (2.3, 125000), # Level 14: Multiplier = 2.3, Staked Amount = 15000
-        15: (2.4, 146500), # Level 15: Multiplier = 2.4, Staked Amount = 16500
-        16: (2.5, 168000), # Level 16: Multiplier = 2.5, Staked Amount = 18000
-        17: (2.6, 179500), # Level 17: Multiplier = 2.6, Staked Amount = 19500
-        18: (2.7, 221000), # Level 18: Multiplier = 2.7, Staked Amount = 21000
-        19: (2.8, 242500), # Level 19: Multiplier = 2.8, Staked Amount = 22500
-        20: (2.9, 24000), # Level 20: Multiplier = 2.9, Staked Amount = 24000
-        21: (3.0, 266000), # Level 21: Multiplier = 3.0, Staked Amount = 26000
-        22: (3.1, 288000), # Level 22: Multiplier = 3.1, Staked Amount = 28000
-        23: (3.2, 320000), # Level 23: Multiplier = 3.2, Staked Amount = 30000
-        24: (3.3, 342000), # Level 24: Multiplier = 3.3, Staked Amount = 32000
+        11: (2.0, 80500),  # Level 11: Multiplier = 2.0, Staked Amount = 10500
+        12: (2.1, 100000),  # Level 12: Multiplier = 2.1, Staked Amount = 12000
+        13: (2.2, 113500),  # Level 13: Multiplier = 2.2, Staked Amount = 13500
+        14: (2.3, 125000),  # Level 14: Multiplier = 2.3, Staked Amount = 15000
+        15: (2.4, 146500),  # Level 15: Multiplier = 2.4, Staked Amount = 16500
+        16: (2.5, 168000),  # Level 16: Multiplier = 2.5, Staked Amount = 18000
+        17: (2.6, 179500),  # Level 17: Multiplier = 2.6, Staked Amount = 19500
+        18: (2.7, 221000),  # Level 18: Multiplier = 2.7, Staked Amount = 21000
+        19: (2.8, 242500),  # Level 19: Multiplier = 2.8, Staked Amount = 22500
+        20: (2.9, 24000),  # Level 20: Multiplier = 2.9, Staked Amount = 24000
+        21: (3.0, 266000),  # Level 21: Multiplier = 3.0, Staked Amount = 26000
+        22: (3.1, 288000),  # Level 22: Multiplier = 3.1, Staked Amount = 28000
+        23: (3.2, 320000),  # Level 23: Multiplier = 3.2, Staked Amount = 30000
+        24: (3.3, 342000),  # Level 24: Multiplier = 3.3, Staked Amount = 32000
         25: (3.4, 364000)  # Level 25: Multiplier = 3.4, Staked Amount = 34000
     }
 
@@ -318,20 +325,24 @@ def update_reputation_and_badge(dashboard):
     for level, (multiplier, threshold) in LEVEL_THRESHOLDS.items():
         if stake_amount >= threshold and current_level < level:
             dashboard.level = level  # Update to the new level
-            dashboard.asker_badge_name = STAKING_BADGES[level - 1]  # Change badge based on level
-            dashboard.multiplier = round(multiplier, 1)  # Set the new multiplier and round to 1 decimal place
+            # Change badge based on level
+            dashboard.asker_badge_name = STAKING_BADGES[level - 1]
+            # Set the new multiplier and round to 1 decimal place
+            dashboard.multiplier = round(multiplier, 1)
             break
 
     # Save the dashboard to update changes
     dashboard.save()
 
-    return current_level < dashboard.level  # Return whether the reputation increased
+    # Return whether the reputation increased
+    return current_level < dashboard.level
+
 
 @dashboard_bp.route('/api/user_history/<user_name>', methods=['GET'])
 def get_user_history(user_name):
     # Fetch the user by user_name
     user = User.objects(user_name=user_name).first()
-    
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -343,7 +354,8 @@ def get_user_history(user_name):
     for question in questions:
         active_time = datetime.utcnow() - question.timestamp
         active_duration = f"{active_time.days} days, {active_time.seconds // 3600} hours, " \
-                          f"{(active_time.seconds // 60) % 60} minutes, {active_time.seconds % 60} seconds"
+            f"{(active_time.seconds // 60) %
+                60} minutes, {active_time.seconds % 60} seconds"
 
         response.append({
             "user_name": question.user_name,
@@ -355,17 +367,18 @@ def get_user_history(user_name):
 
     return jsonify(response), 200
 
+
 @dashboard_bp.route('/api/user_liked_answers/<user_name>/<question_id>', methods=['GET'])
 def get_user_liked_answers(user_name, question_id):
     # Fetch the user by user_name
     user = User.objects(user_name=user_name).first()
-    
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
     # Find the question by ID
     question = Question.objects(id=question_id).first()
-    
+
     if not question:
         return jsonify({"error": "Question not found"}), 404
 
@@ -378,11 +391,11 @@ def get_user_liked_answers(user_name, question_id):
     # Prepare the response with the list of liked answers
     response = [{
         "answer_id": str(answer.id),
-        "answer_text": answer.answer_text,  # Assuming you have this field
+        "answer_text": answer.answer_text, # Assuming you have this field
         "likes": answer.likes,
         "liked_by": answer.liked_by,
-        "answer_user_name": str(answer.responder_user_name),  # Corrected spelling here
-        "timestamp": answer.timestamp.strftime('%Y-%m-%d %H:%M:%S')  # Format the timestamp
+        "answer_user_name": str(answer.responder_user_name),# Corrected spelling here
+        "timestamp": answer.timestamp.strftime('%Y-%m-%d %H:%M:%S') # Format the timestamp
     } for answer in liked_answers]
 
     return jsonify({
@@ -390,178 +403,196 @@ def get_user_liked_answers(user_name, question_id):
         "liked_answers": response
     }), 200
 
+
 @dashboard_bp.route('/api/select_answers', methods=['POST'])
 def select_answers():
+    # Get User Name from JWT Token
+    header = request.headers
+    auth_token = header.get('Authorization')
+    if not auth_token:
+        return jsonify({"message": "Authorization token is required."}), 401
+
+    auth_token = auth_token.split(' ')[1]
+    try:
+        secret_key = os.getenv('SECRET_KEY')
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
+        user_name = decoded_token.get('user_name')
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token has expired."}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid token."}), 401
+
+    # Get Responders List & Quesition ID
     data = request.json
-    selected_responder_usernames = data.get('selected_responder_usernames')  # List of selected responder usernames
-    question_id = data.get('question_id')  # ID of the question for which answers are selected
-    print(f"Selected Responder Usernames: {selected_responder_usernames}")
+    # List of selected responder usernames
+    selected_responder_usernames = data.get('selected_responder_usernames')
+    # ID of the question for which answers are selected
+    question_id = data.get('question_id')
+
     if not selected_responder_usernames or not question_id:
         return jsonify({"error": "Selected responder usernames and question ID are required."}), 400
 
     # Limit the number of selected answers to 3
     if len(selected_responder_usernames) > 3:
         return jsonify({"error": "You can only select up to 3 responders."}), 400
-    user_ids = User.objects(user_name__in=selected_responder_usernames).only('id')
-    user_ids_set = {user.id for user in user_ids}
 
-    # Find answers for the question and from the selected users
-    selected_answers = Answer.objects.filter(
-        answer_giver_user_id__in=user_ids_set,
-        question_id=question_id
-    )
+    # Find answers that correspond to the selected responder usernames
+    selected_answers = Answer.objects(
+        responder_user_name__in=selected_responder_usernames, question_id=question_id)
 
     # Debugging statement: log the selected answers
     print(f"Selected Answers Query: {selected_answers}")
 
-    # Check which responders did not provide answers
-    found_responder_set = {answer.answer_giver_user_id.user_name for answer in selected_answers}
-    missing_responders = set(selected_responder_usernames) - found_responder_set
-    
+    # Create a set of usernames for quick lookup
+    selected_responder_set = set(selected_responder_usernames)
+
+    # Create a set of found responder usernames based on selected answers
+    found_responder_set = {
+        answer.responder_user_name for answer in selected_answers}
+
+    # Identify which responders did not provide answers
+    missing_responders = selected_responder_set - found_responder_set
+
     if missing_responders:
         return jsonify({"error": f"The following responders did not provide answers: {', '.join(missing_responders)}."}), 404
 
     # Store selected answers in the SelectedAnswer collection
     for responder_username in selected_responder_usernames:
-        print(f"Processing responder: {responder_username}")
         # Find the corresponding answer for the responder
-        user = User.objects(user_name=responder_username).first()
+        answer = selected_answers.filter(
+            responder_user_name=responder_username).first()
 
-        # Use the user object to filter the answers
-        selected_answer = selected_answers.filter(answer_giver_user_id=user).first()
         # Check if this answer is already selected
-        if SelectedAnswer.objects(answer=selected_answer).first():
+        if SelectedAnswer.objects(answer=answer).first():
             return jsonify({"error": f"Answer from responder '{responder_username}' is already selected."}), 400
 
-        
-
-        print(f"Selected Answer being saved for: {responder_username}")
         # Save the selected answer
         selected_answer = SelectedAnswer(
             user_name=responder_username,  # Store the responder's username
-            answer=selected_answer,                  # The answer object being selected
+            answer=answer,                  # The answer object being selected
             question_id=question_id         # The question ID related to the answer
         )
-
-        
         selected_answer.save()
-        
-        # Update the question model to indicate that it has been released
-        question = Question.objects(id=question_id).first()
-        question.released = True
-        question.save()
+
+    # Distribute payments to all 3 responder
     try:
-        distribute_payments_helper(question_id, selected_answer.question_id.stake_amount)
-    except Exception as e: 
-        print(str(e))
-        return jsonify({"error": str(e)}), 500
-    return jsonify({"message": "Answers selected successfully!"}), 200
+        distribute_payments(user_name, question_id)
+    except Exception as e:
+        return jsonify({"error:" f"Payment distribution failed: {str(e)}"}), 500
 
-#payment
-def distribute_payments_helper(question_id, total_stake_amount):
+    return jsonify({"message": "Answers selected and payments distributed successfully!"}), 200
 
-    print(f"Question ID: {question_id}")
-    print(f"Total stake amount: {total_stake_amount}")
+# Distribute Payment to Responders (multiplier calculation)
+def distribute_payments(user_name, question_id):
+    if not user_name or not question_id:
+        return jsonify({"error": "User name and question ID are required."}), 400
 
-    if not question_id or total_stake_amount is None:
-        print("400 error: User name, question ID, and total stake amount are required.")
-        return 400, {"error": "User name, question ID, and total stake amount are required."}
+    user = User.objects(user_name=user_name).first()
+    if not user:
+        return jsonify({"error": "User not found."}), 404
 
     question = Question.objects(id=question_id).first()
-    print(f"Question: {question}")
     if not question:
-        print("404 error: Question not found.")
-        return 404, {"error": "Question not found."}
+        return jsonify({"error": "Question not found."}), 404
+
+    # Fetch the stake_coin from the question
+    total_stake_coin = question.stake_amount
+    if total_stake_coin is None or total_stake_coin <= 0:
+        return jsonify({"error": "Invalid stake_coin for the question."}), 400
 
     selected_answers = SelectedAnswer.objects(question_id=question_id)
-    print(f"Selected answers: {selected_answers}")
     if not selected_answers:
-        print("404 error: No selected answers found for this question.")
-        return 404, {"error": "No selected answers found for this question."}
+        return jsonify({"error": "No selected answers found for this question."}), 404
 
-    selected_responder_usernames = [selected_answer.user_name for selected_answer in selected_answers]
-    print(f"Selected responder usernames: {selected_responder_usernames}")
-
-    responders = []
-    for user_name in selected_responder_usernames:
-        print(f"Processing user: {user_name}")
-        dash = UserDashboard.objects(user_name=user_name).first()
-        if not dash:
-            print(f"Creating dashboard for user: {user_name}")
-            dash = UserDashboard(
-            user_name=user.user_name,
-            level=1,
-            asker_badge_name=STAKING_BADGES[0],
-            responder_badge_name=ANSWERER_BADGES[0],
-            multiplier=1.0,
-            last_updated=datetime.utcnow(),
-            total_staked=0.0,
-            total_received=0.0,
-            total_likes=0  # Ensure this is initialized
-            )
-            dash.save()
-        print(f"Dashboard for {user_name}: {dash}")
-        responders.append(dash)
+    selected_responder_usernames = [
+        selected_answer.user_name for selected_answer in selected_answers]
+    responders = UserDashboard.objects(
+        user_name__in=selected_responder_usernames)
 
     total_multiplier = sum(responder.multiplier for responder in responders)
 
+    # Ensure that each responder has a UserDashboard, create one if not
+    for responder in responders:
+        dashboard = UserDashboard.objects(
+            user_name=responder.user_name).first()
+        if not dashboard:
+            dashboard = UserDashboard(
+                user=responder.user,
+                user_name=responder.user_name,
+                full_name=responder.full_name,
+                email=responder.email,
+                mobile=responder.mobile,
+                total_received=0.0  # Initialize with 0 if new
+            )
+            dashboard.save()
+
+    # Calculate reward points and distribute them to each responder
     payments = []
-    print(f"cleaned for payment Responders: {responders}")
     for responder in responders:
         if total_multiplier > 0:
-            payment_amount = (responder.multiplier / total_multiplier) * total_stake_amount
+            # Calculate reward points
+            reward_points = (responder.multiplier / total_multiplier) * total_stake_coin
+            # Convert to reward points
+            reward_points = round(reward_points * 100)
         else:
-            payment_amount = 0
+            reward_points = 0
 
-        payment_amount_rounded = round(payment_amount, 2)
-
-        # Save Payment object
+        # Save Payment object with reward points
         payment = Payment(
-            user=question.user,
-            payment_amount=payment_amount_rounded,
+            user=user,
+            reward_points=reward_points,  # Store reward points as payment amount
             question_id=question,
-            responder_user_name=responder.user_name
+            responder_user_name=responder.user_name,
+            release_stake=total_stake_coin  # Store total_stake_coin as release_stake
         )
         payment.save()
 
-        # Update UserDashboard
-        dashboard = UserDashboard.objects(user_name=responder.user_name).first()
+        # Update responder's UserDashboard with reward points
+        dashboard = UserDashboard.objects(
+            user_name=responder.user_name).first()
         if dashboard:
-            print(f"Before update total_received for {dashboard.user_name}: {dashboard.total_received}")
-            dashboard.total_received += payment_amount_rounded
+            dashboard.total_received += reward_points
+            dashboard.points_balance += reward_points
             try:
                 dashboard.save()  # Attempt to save the dashboard
                 dashboard.update_last_updated()  # Update last updated timestamp
-                print(f"Updated total_received for {dashboard.user_name}: {dashboard.total_received}")
             except Exception as e:
                 print(f"Error saving dashboard for {dashboard.user_name}: {e}")
-        else:
-            print(f"Dashboard not found for responder: {responder.user_name}")
 
         payments.append({
             "user_name": responder.user_name,
-            "payment": payment_amount_rounded
+            "reward_points": reward_points  # Include reward points in the response
         })
 
-    return 200, {"payments": payments}
+    # Update Locked Amount from (Asker/Tasker)'s Wallet
+    wallet = Wallet.objects(user=user).first()
+    wallet.locked_amount -= total_stake_coin
+    wallet.save()
+
+    # Update Question state to released
+    question.release = True
+
+    return jsonify({"payments": payments, "release_stake": total_stake_coin}), 200
 
 
-#adonaydem
+# adonaydem
 @dashboard_bp.route('/api/user_history/answered', methods=['GET'])
 def get_answered_history():
     if request.method == 'OPTIONS':
         return '', 200
-    #authorize
+    # authorize
     header = request.headers
     auth_token = header.get('Authorization')
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
+
     auth_token = auth_token.split(' ')[1]
     # Verify the token
     try:
         secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
 
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
@@ -572,54 +603,54 @@ def get_answered_history():
     user = User.objects(user_name=user_name).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
-    print(user.user_name)
     # Fetch selected answers by the user
-    selected_answers = SelectedAnswer.objects(user_name=user.user_name).select_related()
+    selected_answers = SelectedAnswer.objects(
+        user_name=user.user_name).select_related()
 
     answered_history = []
 
     for selected in selected_answers:
         answer = selected.answer
         question = selected.question_id
-        print(question.id, selected.user_name)
         # Retrieve the payment for the selected answer
         payment = Payment.objects(
             question_id=question,
             responder_user_name=selected.user_name
         ).first()
 
-        
-
         # Calculate active duration since the answer was selected
         active_time = datetime.utcnow() - selected.timestamp
         active_duration = f"{active_time.days} days, {active_time.seconds // 3600} hours, " \
-                          f"{(active_time.seconds // 60) % 60} minutes, {active_time.seconds % 60} seconds"
+            f"{(active_time.seconds // 60) %
+                60} minutes, {active_time.seconds % 60} seconds"
 
         answered_entry = {
             "user_name": user.user_name,
             "task": question.question_text,
+            "taskTitle": question.question_title,
             "date": selected.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            "tokensEarned": payment.payment_amount if payment else 0,  # Amount from the payment document
-            "active_duration": active_duration
+            "tokensEarned": payment.payment_amount if payment else 0, # Amount from the payment document
+            "active_duration": active_duration,
+            "rewardPoints": payment.reward_points,
         }
 
         answered_history.append(answered_entry)
-    print(answered_history)
     return jsonify(answered_history), 200
 
-#adonaydem
+# adonaydem
 @dashboard_bp.route('/api/user_history/released_tasks', methods=['GET'])
 def get_released_tasks():
     header = request.headers
     auth_token = header.get('Authorization')
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
+
     auth_token = auth_token.split(' ')[1]
     # Verify the token
     try:
         secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
 
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
@@ -634,16 +665,19 @@ def get_released_tasks():
 
     # Fetch all released questions asked by the user
     released_questions = Question.objects(user=user, released=True)
+    print("RELEASED QUESTION:", released_questions)
 
     released_tasks = []
 
     for question in released_questions:
         # Find the winner (answer selected for this question)
         selected_answer = SelectedAnswer.objects(question_id=question.id)
-        
+
         if not selected_answer:
             continue  # Skip if no selected answer found
         
+        winners = []
+
         for answer in selected_answer:
             # Fetch the payment for the selected answer
             payment = Payment.objects(
@@ -651,23 +685,27 @@ def get_released_tasks():
                 responder_user_name=answer.user_name
             ).first()
 
-            # Calculate the timeframe (duration from question's timestamp to its release)
-            timeframe_duration = datetime.utcnow() - question.timestamp
-            timeframe = f"{timeframe_duration.days} days, {timeframe_duration.seconds // 3600} hours"
+            winners.append(answer.user_name)
 
-            # Create a released task entry
-            released_task_entry = {
-                "task": question.question_text,
-                "wonBy": answer.user_name,
-                "timeframe": timeframe,
-                "date": question.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                "stakingReward": payment.payment_amount if payment else 0  # Amount from the payment document
-            }
+        # Calculate the timeframe (duration from question's timestamp to its release)
+        timeframe_duration = datetime.utcnow() - question.timestamp
+        timeframe = f"{timeframe_duration.days} days, {timeframe_duration.seconds // 3600} hours"
 
-            released_tasks.append(released_task_entry)
+        # Create a released task entry
+        released_task_entry = {
+            "task": question.question_text,
+            "taskTitle": question.question_title,
+            "winners": winners,
+            "timeframe": timeframe,
+            "date": question.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            "rewardPoints": payment.reward_points,
+        }
 
+        released_tasks.append(released_task_entry)
+    print("RELEASED TASK:", released_tasks)
     return jsonify(released_tasks), 200
-#adonaydem
+
+# adonaydem
 @dashboard_bp.route('/questions/active', methods=['GET'])
 def get_active_questions():
     try:
@@ -678,11 +716,12 @@ def get_active_questions():
         auth_token = auth_token.split(' ')[1]
         # Verify the token
         try:
-            secret_key = os.getenv('SECRET_KEY')    
-            decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+            secret_key = os.getenv('SECRET_KEY')
+            decoded_token = jwt.decode(
+                auth_token, secret_key, algorithms=["HS256"])
             user_name = decoded_token.get('user_name')
         except jwt.ExpiredSignatureError:
-            return jsonify({"message": "Token has expired."}), 401  
+            return jsonify({"message": "Token has expired."}), 401
         except jwt.InvalidTokenError:
             return jsonify({"message": "Invalid token."}), 401
 
@@ -713,7 +752,6 @@ def get_active_questions():
             } for question in questions]
         else:
             questions_list = [{
-                
                 "username": question.user_name,
                 "stake": question.question_title,
                 "stakeDetails": question.question_text,
@@ -721,9 +759,53 @@ def get_active_questions():
                 "time_left": format_time_left(question.visible_until),
                 "question_id": str(question.id),
             } for question in questions]
-        
+
         return jsonify(questions_list), 200
     except Exception as e:
         print(str(e))
         return jsonify({'error': str(e)}), 400
 
+
+# Update user dashboard data
+@dashboard_bp.route("/api/update_dashboard", methods=['PATCH'])
+def update_dashboard_data():
+    header = request.headers
+    auth_token = header.get('Authorization')
+    if not auth_token:
+        return jsonify({"message": "Authorization token is required."}), 401
+
+    auth_token = auth_token.split(' ')[1]
+    try:
+        secret_key = os.getenv('SECRET_KEY')
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
+        user_name = decoded_token.get('user_name')
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token has expired."}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid token."}), 401
+
+    # Fetch the user by user_name
+    user = User.objects(user_name=user_name).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Fetch user's dashboard data
+    dashboard = UserDashboard.objects(user=user).first()
+
+    # Get data to be updated
+    update_data = request.json
+
+    if 'pointsBalance' in update_data:
+        try:
+            points_balance = int(update_data.get('pointsBalance'))
+            dashboard.points_balance += points_balance
+        except ValueError:
+            return jsonify({"error": "Invalid points balance value"}), 400
+    
+
+    # Save updated dashboard data
+    dashboard.save()
+
+    # Response
+    return jsonify("Success Update Dashboard"), 200

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
 import { motion } from "framer-motion";
 import { Input } from "./popups_component/input.jsx";
@@ -6,19 +6,18 @@ import { Label } from "./popups_component/label.jsx";
 import Button from "./popups_component/button.jsx";
 import { X, Wallet } from "lucide-react";
 import { RiHandCoinLine } from "react-icons/ri";
-import { formatFiat } from "../lib/utils.js";
 import useAlert from '../../Hooks/useAlert.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { setWalletBalance } from '../../Store/Slices/Wallet.js';
+import { setPointsBalance } from '../../Store/Slices/User.js';
 
 const API_BASE_URL = process.env.NODE_ENV === "development"
   ? "http://localhost:5000"
   : process.env.Deployed_link;
 
-const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
+const RedeeemPointPopUp = ({ isOpen, setOpen }) => {
   const [redeemAmount, setRedeemAmount] = useState(null);
   const [precessingRedeem, setProcessingRedeem] = useState(false);
-  const walletBalance = useSelector((state) => state.walletState.balance);
+  const pointsBalance = useSelector((state) => state.userState.pointsBalance);
   const showAlert = useAlert();
   const dispatch = useDispatch();
 
@@ -29,7 +28,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
     setRedeemAmount(null);
   }
 
-  // Handler - Redeem Coin to Wallet
+  // Handler - Redeem Points to Stellar Wallet
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -37,8 +36,8 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
     if (!redeemAmount) {
       showAlert({ severity: "error", message: "Please Enter a Valid Amount." });
       return;
-    } else if (redeemAmount > walletBalance) {
-      showAlert({ severity: "error", message: "You don't have that much STC !" });
+    } else if (redeemAmount > pointsBalance) {
+      showAlert({ severity: "error", message: "Insufficient Points, Try Another Amount !" });
       return;
     }
 
@@ -46,16 +45,16 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
     setProcessingRedeem(true);
 
     try {
-      // Fetch API - Redeem Coin to Wallet
-      const response = await redeemCoin();
+      // Fetch API - Redeem Points
+      const response = await redeemPoint();
 
       // Handle API response
       if (response === 200) {
         // Alert Success Message 
-        showAlert({ severity: "success", message: `${redeemAmount} STC Redeemed Successfully !` });
+        showAlert({ severity: "success", message: `${redeemAmount} Points Redeemed Successfully !` });
 
         // Update Wallet Balance
-        dispatch(setWalletBalance(Number(walletBalance) - Number(redeemAmount)));
+        dispatch(setPointsBalance(Number(pointsBalance) - Number(redeemAmount)));
       }
     } catch (error) {
       console.error("Error redeeming token:", error);
@@ -65,27 +64,27 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
     }
   }
 
-  // API - Redeem Coin Update Wallet Balance
-  async function redeemCoin() {
+  // API - Redeem Point Update DB
+  async function redeemPoint() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/update_wallet`, {
+      const response = await fetch(`${API_BASE_URL}/api/update_dashboard`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          balance: -redeemAmount,
+          pointsBalance: -redeemAmount,
         })
       })
 
       if (!response.ok) {
-        throw new Error("Error updating wallet balance", response.status)
+        throw new Error("Error updating points", response.status)
       }
 
       return response.status
     } catch (error) {
-      console.error('Error Redeem Coin', error.message);
+      console.error('Error Redeem Point', error.message);
     }
   }
 
@@ -113,7 +112,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
               <div className="flex justify-between items-center relative z-10">
                 <h2
                   className="text-2xl font-extrabold tracking-wider">
-                  Redeem Coins
+                  Redeem Points
                 </h2>
                 <Button
                   variant="ghost"
@@ -161,11 +160,11 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
                     <div className='flex justify-between items-end'>
                       {/* Label */}
                       <Label htmlFor="redeemAmount" className="text-slate-100 text-sm m;-2">
-                        Coin
+                        Points
                       </Label>
 
-                      {/* Available Coins to Redeem */}
-                      <span className='text-xs text-[#A0AAB2]'>{formatFiat(walletBalance, 4)} available</span>
+                      {/* Available Points to Redeem */}
+                      <span className='text-xs text-[#A0AAB2]'>{pointsBalance.toLocaleString("en-US")} available</span>
                     </div>
                     <div className="relative">
                       {/* Input Field */}
@@ -190,7 +189,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          setRedeemAmount(Number(walletBalance))
+                          setRedeemAmount(Number(pointsBalance))
                         }}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-[#A0AAB2] hover:text-[#F0F3F5]"
                       >
@@ -199,7 +198,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
                     </div>
                   </div>
 
-                  {/* Btn - Redeem Coin */}
+                  {/* Btn - Redeem Points */}
                   <Button
                     className="w-full bg-gradient-to-r from-slate-900 to-teal-400 hover:from-teal-400 hover:to-teal-400 text-white font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 hover:rotate-1 hover:shadow-neon"
                   >
@@ -216,7 +215,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
                 <Button
                   variant="link"
                   className="text-blue-200 hover:text-blue-200"
-                // onClick={NewToGame}
+                // onClick={T&C}
                 >
                   T&C
                 </Button>
@@ -224,7 +223,7 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
                 <Button
                   variant="link"
                   className="text-blue-200 hover:text-blue-200"
-                // onClick={NewToGame}
+                // onClick={FAQ}
                 >
                   FAQ
                 </Button>
@@ -238,4 +237,4 @@ const RedeemCoinPopUp = ({ isOpen, setOpen }) => {
   )
 }
 
-export default RedeemCoinPopUp
+export default RedeeemPointPopUp

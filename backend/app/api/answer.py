@@ -31,17 +31,19 @@ def post_answer():
     user = User.objects(user_name=user_name).first()
     if not user:
         return jsonify({"message": "User not found."}), 404
+    
     answer_data = request.json
     asker_user_id = answer_data.get('asker_user_id')
     question_id = answer_data.get('question_id')
+    user_name = answer_data.get('user_name')
     answer_text = answer_data.get('answer')
     print(question_id, "qid")
 
     try:
         # Check if question exists
-        question = Question.objects(id=question_id).first()
-        print(question.id)
-        if not question:
+        try:
+            question = Question.objects.get(id=question_id)  # Fetch the question using the id
+        except DoesNotExist:
             return jsonify({"message": "Question not found."}), 404
 
         # Check if users exist
@@ -53,10 +55,14 @@ def post_answer():
 
         # Create and save the answer
         answer = Answer(
-            question_id=question,
             asker_user_id=asker_user,
             answer_giver_user_id=answer_giver_user,
-            answer=answer_text
+            answer=answer_text,
+            question_id=question,
+            answer_user_name=user,
+            responder_user_name=user.user_name,
+            answer_text=answer_text,
+            question_asker_user_name=question.user_name  # Store the user name of the asker
         )
         answer.save()
 

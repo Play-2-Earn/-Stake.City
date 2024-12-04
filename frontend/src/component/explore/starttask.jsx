@@ -67,7 +67,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
     }
   }, [task]);
   
-  const handleSendMessage = () => {
+  const handleSendMessage = () => {    
     const token = sessionStorage.getItem("jwtToken");
 
     if (chatMessage.trim()) {
@@ -79,6 +79,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         },
         body: JSON.stringify({
           asker_user_id: task.user_name,
+          user_name: task.user_name,
           question_id: task.question_id,
           answer: chatMessage,
         }),

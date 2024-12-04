@@ -5,23 +5,24 @@ import { Input } from "./popups_component/input";
 import { Label } from "./popups_component/label";
 import { X, UserPlus, Key, Mail, Calendar, Phone, User } from "lucide-react";
 
+const API_BASE_URL =
+    process.env.NODE_ENV === "development"
+        ? "http://localhost:5000"
+        : process.env.Deployed_link;
+
 const FinalReleasePopup = ({ isOpen, onClose, ValuesForFinalCheck, afterFinalResponse, Task }) => {
     // const [ReleaseStakes, setReleaseStakes] = useState("")
     console.log(ValuesForFinalCheck)
     const [user1, user2, user3] = ValuesForFinalCheck
+
     const onConfirm = () => {
         console.log(user1, user2, user3, Task)
-
-        //  mit prajapati (development and production link support)
-        const API_BASE_URL =
-            process.env.NODE_ENV === "development"
-                ? "http://localhost:5000"
-                : process.env.Deployed_link;  
 
         fetch(`${API_BASE_URL}/api/select_answers`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
             },
             body: JSON.stringify({
                 selected_responder_usernames: [user1, user2, user3],

@@ -4,26 +4,20 @@ import * as Popover from '@radix-ui/react-popover';
 import { X } from "lucide-react";
 import { LuWallet } from "react-icons/lu";
 import { FaMoneyBills } from "react-icons/fa6";
-import { RiHandCoinLine } from "react-icons/ri";
+import { FaLock } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
-import AddWalletNote from "../popups/addWalletNote";
-import AddWalletPopUp from '../popups/addWalletPopUp';
-import RedeemCoinPopUp from "../popups/redeemCoinPopUp";
 import AddCoinPopUp from "../popups/addCoinPopUp";
 import { formatFiat } from "../lib/utils.js";
 import { useDispatch, useSelector } from "react-redux";
 
 const WalletInfo = ({ userData }) => {
-  // const [walletBalance, setwalletBalance] = useState(0);
   const dispatch = useDispatch();
-  const walletBalance = useSelector((state) => state.walletState.balance)
-  const walletAddr = useSelector((state) => state.walletState.wallet_addr)
-  const [usdBalance, setUsdBalance] = useState(0)
+  const walletBalance = useSelector((state) => state.walletState.balance);
+  const lockedAmount = useSelector((state) => state.walletState.locked_amount);
+  const walletAddr = useSelector((state) => state.walletState.wallet_addr);
+  const [usdBalance, setUsdBalance] = useState(0);
   const [openWalletDetail, setOpenWalletDetail] = useState(false);
-  const [openAddWallet, setOpenAddWallet] = useState(false);
-  const [openRedeemCoin, setOpenRedeemCoin] = useState(false);
   const [openAddCoin, setOpenAddCoin] = useState(false);
-  const [openNote, setOpenNote] = useState(false);
   const [tolltipText, setTooltipText] = useState('Copy to clipboard');
 
   // Handler - Copy to Clipboard
@@ -34,15 +28,6 @@ const WalletInfo = ({ userData }) => {
     // Reset tooltip text after a short delay
     setTimeout(() => setTooltipText("Copy to clipboard"), 2000);
   };
-
-  // Handler - Open Redeem Coin Pop Up
-  function handleOpenRedeemCoin() {
-    if (walletAddr) {
-      setOpenRedeemCoin(true) // Open Redeem Wallet Pop Up
-    } else {
-      setOpenNote(true); // Open note before Add Wallet Pop Up
-    }
-  }
 
   // Convert Wallet Balance STC to USD on Mount
   useEffect(() => {
@@ -78,7 +63,7 @@ const WalletInfo = ({ userData }) => {
                 transition={{ duration: 0.1, ease: "easeIn" }}
               >
                 <Popover.Content
-                  className="absolute -top-2 right-[-1.5em] w-fit flex flex-col items-center gap-1 py-3 pb-5 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-100 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
+                  className="absolute -top-2 right-[-1.5em] w-fit min-w-[17vw] flex flex-col items-center gap-1 py-3 pb-3 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-100 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
                   key="wallet-detail"
                 >
                   {/*  Btn - Close Wallet Details */}
@@ -125,7 +110,7 @@ const WalletInfo = ({ userData }) => {
                   />
 
                   {/* Balance - Stake Coins */}
-                  <div className="flex flex-col items-center mt-1">
+                  <div className="flex flex-col items-center mt-3">
                     <span className="text-lg">
                       {formatFiat(walletBalance, 4)} STC
                     </span>
@@ -135,21 +120,21 @@ const WalletInfo = ({ userData }) => {
                     </span>
                   </div>
 
-                  {/* Buttons */}
-                  <div className="flex flex-row gap-3 mt-6">
-                    {/* Btn - Redeeem Coin */}
-                    <WalletButton
-                      title="Redeem"
-                      icon={<RiHandCoinLine size={20} />}
-                      onClickHandler={() => handleOpenRedeemCoin()}
-                    />
-
-                    {/* Btn - Add Coin */}
+                  {/* Btn - Add Coin */}
+                  <div className="mt-6">
                     <WalletButton
                       title="Add"
                       icon={<FaMoneyBills size={20} />}
                       onClickHandler={() => setOpenAddCoin(true)}
                     />
+                  </div>
+
+                  {/* Balance - Locked Stake Coins */}
+                  <div className="flex flex-row gap-1 text-gray-500 items-center justify-center mt-2">
+                    <FaLock size={11} />
+                    <span className="text-xs">
+                      {formatFiat(lockedAmount, 4)} STC
+                    </span>
                   </div>
                 </Popover.Content>
               </motion.div>
@@ -157,30 +142,6 @@ const WalletInfo = ({ userData }) => {
           </AnimatePresence>
         </Popover.Root>
       </div>
-
-      {/* Pop Up - Note before Connect Wallet */}
-      {openNote &&
-        <AddWalletNote
-          isOpen={openNote}
-          setOpenNote={setOpenNote}
-          setOpenAddWallet={setOpenAddWallet}
-        />
-      }
-
-      {/* Pop Up - Connect Wallet */}
-      {openAddWallet &&
-        <AddWalletPopUp
-          isOpen={openAddWallet}
-          setOpenAddWallet={setOpenAddWallet}
-          setOpenRedeemCoin={setOpenRedeemCoin}
-        />
-      }
-
-      {/* Pop Up - Redeem Stake Coin */}
-      <RedeemCoinPopUp
-        isOpen={openRedeemCoin}
-        setOpen={setOpenRedeemCoin}
-      />
 
       {/* Pop Up - Add Stake Coins */}
       <AddCoinPopUp

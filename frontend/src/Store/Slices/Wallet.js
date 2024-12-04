@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   balance: 0,
+  locked_amount: 0,
   wallet_addr: ''
 };
 
@@ -12,12 +13,15 @@ const walletSlice = createSlice({
     setWalletBalance: (state, action) => {
       state.balance = action.payload;
     },
+    setLockedAmount: (state, action) => {
+      state.locked_amount = action.payload;
+    },
     setWalletAddress: (state, action) => {
       state.wallet_addr = action.payload;
     }
   }
 });
 
-export const { setWalletBalance, setWalletAddress } = walletSlice.actions;
+export const { setWalletBalance, setLockedAmount, setWalletAddress } = walletSlice.actions;
 
 export default walletSlice.reducer;

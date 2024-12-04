@@ -19,11 +19,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/themes": "^3.1.4",
     "@react-three/fiber": "^8.17.9",
-<<<<<<< HEAD
-    "@reduxjs/toolkit": "^2.3.0",
-=======
     "@reduxjs/toolkit": "^2.4.0",
->>>>>>> 07269ad4119302535e1c6f74a8854b2c0a6583a3
     "@splinetool/react-spline": "^4.0.0",
     "@stripe/react-stripe-js": "^2.9.0",
     "@stripe/stripe-js": "^4.10.0",

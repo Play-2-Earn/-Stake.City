@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import mongoengine
 from ..api.models import Wallet, User
 from datetime import datetime
 import jwt
@@ -7,23 +8,23 @@ import os
 wallet_bp = Blueprint('wallet', __name__)
 
 # Get Wallet Data
-@wallet_bp.route('/api/get_wallet', methods=['OPTIONS','GET'])
+@wallet_bp.route('/api/get_wallet', methods=['OPTIONS', 'GET'])
 def get_wallet_data():
     if request.method == 'OPTIONS':
         return '', 200
-    
+
     header = request.headers
     auth_token = header.get('Authorization')
 
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
-    
+
     auth_token = auth_token.split(' ')[1]
   # Verify the token
     try:
         secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
         return jsonify({"message": "Token has expired."}), 401
@@ -31,28 +32,31 @@ def get_wallet_data():
         return jsonify({"message": "Invalid token."}), 401
     # Fetch the user by user_name
     user = User.objects(user_name=user_name).first()
-    
+
     if not user:
         return jsonify({"error": "User not found"}), 404
-    
+
     wallet = Wallet.objects(user=user).first()
 
     # Create wallet if not exist in DB
     if not wallet:
-      wallet = Wallet(
-          user=user,
-          wallet_addr='', 
-          balance=0.0,
-          locked_amount=0.0,
-      )
-      new_wallet.save()
-    
+        wallet = Wallet(
+            user=user,
+            user_name=user_name,
+            wallet_addr='',
+            balance=0.0,
+            locked_amount=0.0,
+        )
+        wallet.save()
+
     response = {
-      "wallet_addr": wallet.wallet_addr,
-      "balance": wallet.balance,
+        "wallet_addr": wallet.wallet_addr,
+        "balance": wallet.balance,
+        "locked_amount": wallet.locked_amount,
     }
 
     return jsonify(response), 200
+
 
 # Update Wallet Data
 @wallet_bp.route('/api/update_wallet', methods=['PATCH'])
@@ -61,22 +65,23 @@ def update_wallet_data():
     auth_token = header.get('Authorization')
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
+
     auth_token = auth_token.split(' ')[1]
     try:
         secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            auth_token, secret_key, algorithms=["HS256"])
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
         return jsonify({"message": "Token has expired."}), 401
     except jwt.InvalidTokenError:
         return jsonify({"message": "Invalid token."}), 401
-    
+
     # Fetch the user by user_name
     user = User.objects(user_name=user_name).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
-    
+
     # Fetch Walelt by user object
     wallet = Wallet.objects(user=user).first()
 
@@ -96,19 +101,26 @@ def update_wallet_data():
             wallet.locked_amount += locked_amount
         except ValueError:
             return jsonify({"error": "Invalid amount value"}), 400
-    
+
     if "wallet_addr" in update_data:
         wallet_addr = update_data.get('wallet_addr')
+
+        # Check if the wallet address already exists
+        existing_wallet = Wallet.objects(wallet_addr=wallet_addr).first()
+        if existing_wallet:
+            return jsonify({"error": "Wallet Address Already Exist."}), 409
+        
+        # Update Wallet Address
         wallet.wallet_addr = wallet_addr
 
-    # Save the updated wallet
+    # Save Updated wallet
     wallet.updated_at = datetime.utcnow()
     wallet.save()
 
     # Response
     response = {
-      "wallet_addr": wallet.wallet_addr,
-      "balance": wallet.balance,
+        "wallet_addr": wallet.wallet_addr,
+        "balance": wallet.balance,
     }
 
     return jsonify(response), 200

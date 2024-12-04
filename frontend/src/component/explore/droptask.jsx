@@ -7,7 +7,7 @@ import { Textarea } from "../ui/textarea";
 import SignTransactionModal from "../popups/transactionPopup";
 import { useDispatch, useSelector } from "react-redux";
 import useAlert from "../../Hooks/useAlert";
-import { setWalletBalance } from "../../Store/Slices/Wallet";
+import { setLockedAmount, setWalletBalance } from "../../Store/Slices/Wallet";
 
 const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) => {
   const [step, setStep] = useState(0);
@@ -18,6 +18,7 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
   const [isSuccess, setIsSuccess] = useState(false);
   const [isTransactionPopupOpen, setIsTransactionPopupOpen] = useState(false);
   const walletBalance = useSelector((state) => state.walletState.balance)
+  const lockedAmount = useSelector((state) => state.walletState.locked_amount)
   const [transactionDetails, setTransactionDetails] = useState({
     stakeAmount: "0",
     gasFee: "5",
@@ -105,8 +106,9 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
       const [responseDropTask, responseUpdateWallet] = await Promise.all([dropTaskRequest, updateWalletRequest]);
 
       if (responseDropTask.ok && responseUpdateWallet.ok) {
-        // Update Wallet balance
+        // Update Wallet Data
         dispatch(setWalletBalance(Number(walletBalance) - Number(stakeAmount)));
+        dispatch(setLockedAmount(Number(lockedAmount) + Number(stakeAmount)));
 
         const data = await responseDropTask.json();
         // Call onSuccess with the returned data if necessary

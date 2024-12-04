@@ -33,7 +33,7 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
     // Check if wallet address is valid
     if (!walletAddrInput) {
       // Set alert info on successful connection
-      showAlert({ severity: "error", message: "Please Enter a Valid Address." });
+      showAlert({ severity: "error", message: "Please Enter a Valid Wallet Address." });
       return;
     }
 
@@ -42,10 +42,19 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
 
     try {
       // Fetch API - Connect Wallet
-      const response = await connectWallet();
+      const response = await fetch(`${API_BASE_URL}/api/update_wallet`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
+        },
+        body: JSON.stringify({
+          wallet_addr: walletAddrInput,
+        })
+      })
 
       // Handle API response
-      if (response === 200) {
+      if (response.status === 200) {
         // Store Wallet Address
         dispatch(setWalletAddress(walletAddrInput));
 
@@ -54,6 +63,8 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
 
         // Open Redeem Wallet Pop Up after Wallet is Connected
         setOpenRedeemCoin(true);
+      } else if (response.status === 409) {
+        showAlert({ severity: "error", message: "Wallet Address is Connected to Aother Account." });
       }
     } catch (error) {
       // Log error
@@ -64,30 +75,6 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
 
     } finally {
       onPopUpClose();
-    }
-  }
-
-  // Simulate API Call - Connect Wallet
-  async function connectWallet() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/update_wallet`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wallet_addr: walletAddrInput,
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error("Error connecting wallet", response.status)
-      }
-
-      return response.status
-    } catch (error) {
-      console.error('Error Connecting Wallet', error.message);
     }
   }
 
