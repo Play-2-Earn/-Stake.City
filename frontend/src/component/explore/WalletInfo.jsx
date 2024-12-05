@@ -8,10 +8,9 @@ import { FaLock } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
 import AddCoinPopUp from "../popups/addCoinPopUp";
 import { formatFiat } from "../lib/utils.js";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 const WalletInfo = ({ userData }) => {
-  const dispatch = useDispatch();
   const walletBalance = useSelector((state) => state.walletState.balance);
   const lockedAmount = useSelector((state) => state.walletState.locked_amount);
   const walletAddr = useSelector((state) => state.walletState.wallet_addr);

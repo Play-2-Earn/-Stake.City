@@ -39,9 +39,6 @@ const checkOutForm = ({ addCoin, totalPayable, localCurrency, STCLocalCurrencyRa
     // Processing payment
     setLoading(true);
 
-    // Create the PaymentIntent and obtain clientSecret
-    fetchClientSecret();
-
     // Confirm the PaymentIntent using the details collected by the Payment Element
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,

@@ -15,6 +15,7 @@ import { Avatar } from '@radix-ui/react-avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLockedAmount, setWalletAddress, setWalletBalance } from '../../Store/Slices/Wallet';
 import useAlert from '../../Hooks/useAlert';
+import { setUserName } from '../../Store/Slices/User';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -58,7 +59,6 @@ const MapboxMap = ({ showControls, q_id }) => {
       });
 
       const data = await response.json();
-      console.log(data);
 
       dispatch(setWalletBalance(data.balance));
       dispatch(setLockedAmount(data.locked_amount));
@@ -83,12 +83,14 @@ const MapboxMap = ({ showControls, q_id }) => {
         avatar: '/avatar.svg',
       };
       console.log(data);
+
       setUserData(data);
+      dispatch(setUserName(data.user_name));
     };
     fetchUser();
   }, []);
 
-  // Fetch locations from the backend when the component mounts
+  // Fetch All Task
   useEffect(() => {
     if (q_id) {
       setIsLink(true);

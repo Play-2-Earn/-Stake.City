@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useSelector } from "react-redux";
 
 const API_BASE_URL =
   process.env.NODE_ENV === "development"
@@ -30,6 +31,7 @@ const API_BASE_URL =
     : process.env.Deployed_link;
 
 const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
+  const userName = useSelector((state) => state.userState.userName);
   const [chatMessage, setChatMessage] = useState("");
   const [chatHistory, setChatHistory] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -121,7 +123,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user_name: task.user_name }),
+      body: JSON.stringify({ user_name: userName }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -131,7 +133,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
           // and add the current user's name to the list of users who have liked it
           updatedHistory[index] = {
             ...updatedHistory[index],
-            likes: [...updatedHistory[index].likes, task.user_name],
+            likes: [...updatedHistory[index].likes, userName],
           };
           setChatHistory({ "answers": updatedHistory, "question_id": task.question_id });
         } else {
@@ -324,7 +326,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                             size="icon"
                             onClick={() => handleLike(chat.answer_id, index)}
                             className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
-                            disabled={chat.likes.includes(task.user_name)}
+                            disabled={chat.likes.includes(userName)}
                           >
                             <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" />
                             {chat.likes.length > 0 && (

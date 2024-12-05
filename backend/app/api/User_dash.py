@@ -140,12 +140,15 @@ def get_user_dashboard():
     total_answers_provided = Answer.objects(answer_giver_user_id=user).count()
 
     # Update reputation score and assign badges accordingly
-    reputation_increased = update_reputation_and_badge(dashboard)
+    reputation_increased = update_reputation_and_badge(dashboard)    
 
     # Log a message or take an action based on the reputation increase
     if reputation_increased:
         print(f"User {dashboard.user_name}'s reputation has increased to level {
               dashboard.level}.")
+    
+    # Update player badge name based on likes received
+    dashboard.responder_badge_name = get_responder_badge_name(user)
 
     # Save updated information
     dashboard.last_updated = datetime.utcnow()  # Update last updated timestamp
@@ -160,8 +163,7 @@ def get_user_dashboard():
         "level": dashboard.level,
         "reputation_badge": dashboard.asker_badge_name,  # Staking Badge
         "player_badge": dashboard.responder_badge_name,  # Answer Badge
-        # Round to 1 decimal place
-        "multiplier": round(dashboard.multiplier, 1),
+        "multiplier": round(dashboard.multiplier, 1), # Round to 1 decimal place
         "stake_amount": total_stake,
         "total_staked": dashboard.total_staked,
         "total_received": total_received,
@@ -179,8 +181,8 @@ def get_responder_badge_name(user):
     answers = Answer.objects(answer_user_name=user)
 
     # Calculate total likes received on the user's answers
-    total_likes = sum(answer.likes for answer in answers)
-
+    total_likes = sum(len(answer.likes) for answer in answers)
+    
     # Determine badge level based on total likes
     if total_likes < 5:
         badge_level = 0  # Level 1 badge
@@ -665,7 +667,6 @@ def get_released_tasks():
 
     # Fetch all released questions asked by the user
     released_questions = Question.objects(user=user, released=True)
-    print("RELEASED QUESTION:", released_questions)
 
     released_tasks = []
 
@@ -702,7 +703,7 @@ def get_released_tasks():
         }
 
         released_tasks.append(released_task_entry)
-    print("RELEASED TASK:", released_tasks)
+
     return jsonify(released_tasks), 200
 
 # adonaydem
