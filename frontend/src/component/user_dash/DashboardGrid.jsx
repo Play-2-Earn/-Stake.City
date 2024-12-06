@@ -621,8 +621,7 @@ const PlayerHistory = () => {
                 }
             });
             const data = await response.json();
-            console.log(data);
-
+            
             setReleasedStakes(data);
         } catch (error) {
             console.error('Error fetching released stakes:', error);
@@ -634,11 +633,6 @@ const PlayerHistory = () => {
         fetchCompletedStakes();
         fetchReleasedStakes();
     }, []);
-
-    // const releasedStakes = [
-    //     { title: 'Security Analysis', amount: 1000, taskers: ['@validator1', '@expert2', '@audit3'] },
-    //     { title: 'Protocol Review', amount: 800, taskers: ['@tech1', '@review2', '@check3'] }
-    // ];
 
     if (!completedStakes) return <div>Loading..</div>
 
@@ -734,7 +728,7 @@ const PlayerHistory = () => {
                                             className="bg-[#45BEA6]/20 px-3 py-1 rounded-full"
                                             whileHover={{ scale: 1.1 }}
                                         >
-                                            <span className="text-[#45BEA6]">{stake.rewardPoints}</span>
+                                            <span className="text-[#45BEA6]">{stake.stakeAmount * 100}</span>
                                         </motion.div>
                                     </div>
                                     <div className="flex flex-wrap gap-2">

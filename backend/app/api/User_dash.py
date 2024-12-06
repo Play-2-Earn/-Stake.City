@@ -573,7 +573,7 @@ def distribute_payments(user_name, question_id):
     wallet.save()
 
     # Update Question state to released
-    question.release = True
+    question.released = True
 
     return jsonify({"payments": payments, "release_stake": total_stake_coin}), 200
 
@@ -696,6 +696,7 @@ def get_released_tasks():
         released_task_entry = {
             "task": question.question_text,
             "taskTitle": question.question_title,
+            "stakeAmount": question.stake_amount,
             "winners": winners,
             "timeframe": timeframe,
             "date": question.timestamp.strftime('%Y-%m-%d %H:%M:%S'),

@@ -126,7 +126,8 @@ def pin_location_and_ask_question():
         "visible_until": visible_until,
         "share_url": share_url,
     }), 200
- 
+
+# Get All Active Tasks
 @question_bp.route('/api/get_all_tasks', methods=['GET'])
 def get_user_questions():
     header = request.headers
@@ -151,7 +152,7 @@ def get_user_questions():
         return jsonify({"message": "User not found."}), 404
 
 
-    questions = Question.objects()
+    questions = Question.objects(released=False)
 
     # Format the questions into a list of dictionaries containing the required location data
     questions_data = []

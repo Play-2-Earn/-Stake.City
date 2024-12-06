@@ -59,6 +59,8 @@ const MapboxMap = ({ showControls, q_id }) => {
       });
 
       const data = await response.json();
+      console.log(data);
+      
 
       dispatch(setWalletBalance(data.balance));
       dispatch(setLockedAmount(data.locked_amount));
@@ -159,15 +161,6 @@ const MapboxMap = ({ showControls, q_id }) => {
     fetchLocations();
   }, []);
 
-
-
-  const sampleTask = {
-    title: "Magical Park Cleanup Quest",
-    description: "Embark on an enchanted journey to restore the beauty of Central Park! Will you answer the call of this epic quest?",
-    location: "Central Park, New York",
-    stakeAmount: 1000,
-  };
-
   // UI button handling functions
   const handleSearch = async (newQuery) => {
     try {
@@ -213,7 +206,6 @@ const MapboxMap = ({ showControls, q_id }) => {
     setActivePopup("GamifiedTaskPopup");
     setIsPopupOpen(true);
   };
-
 
   const handleDropQuestClick = (coordinates) => {
     setActivePopup("DropTaskPopup");
