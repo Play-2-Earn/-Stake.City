@@ -104,13 +104,6 @@ def update_wallet_data():
 
     if "wallet_addr" in update_data:
         wallet_addr = update_data.get('wallet_addr')
-
-        # Check if the wallet address already exists
-        existing_wallet = Wallet.objects(wallet_addr=wallet_addr).first()
-        if existing_wallet:
-            return jsonify({"error": "Wallet Address Already Exist."}), 409
-        
-        # Update Wallet Address
         wallet.wallet_addr = wallet_addr
 
     # Save Updated wallet

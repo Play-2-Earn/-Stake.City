@@ -7,26 +7,14 @@ import {
 	HiOutlineClock,
 	HiOutlineClipboardList
 } from 'react-icons/hi'
+import { FaGamepad } from "react-icons/fa";
 
 export const DASHBOARD_SIDEBAR_LINKS = [
 	{
-		key: 'dashboard',
-		label: 'Dashboard',
-		path: '/',
-		icon: <HiOutlineViewGrid />
-	},
-	{
-		key: 'history',
-		label: 'History',
-		path: '/history',
-		icon: <HiOutlineClock />
-	},
-	
-	{
-		key: 'friends',
-		label: 'Friends',
-		path: '/friends',
-		icon: <HiOutlineUsers />
+		key: 'explore',
+		label: 'Explore',
+		path: '/explore',
+		icon: <FaGamepad />
 	},
 	{
 		key: 'leaderboard',
@@ -34,12 +22,6 @@ export const DASHBOARD_SIDEBAR_LINKS = [
 		path: '/leaderboard',
 		icon: <HiOutlineClipboardList />
 	},
-	{
-		key: 'messages',
-		label: 'Messages',
-		path: '/messages',
-		icon: <HiOutlineAnnotation />
-	}
 ]
 
 export const DASHBOARD_SIDEBAR_BOTTOM_LINKS = [

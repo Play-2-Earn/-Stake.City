@@ -1,10 +1,15 @@
-from flask import Blueprint, jsonify, request
+from time import sleep
+from bson import ObjectId
+from flask import Blueprint, Response, json, jsonify, request
 from mongoengine import DoesNotExist
-from ..api.models import User, UserDashboard, Wallet, Question, Answer, Payment, History, SelectedAnswer
+import pytz
+from ..api.models import User, UserDashboard, Wallet, Question, QuestionStatus, Answer, Payment, History, SelectedAnswer
 from datetime import datetime
-from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
+from datetime import datetime, timezone
 import jwt
 import os
+
 # Create a Blueprint for the user dashboard
 dashboard_bp = Blueprint('dashboard', __name__)
 # Badge Names for Answerers/Responders (BADGES / PLAYER BADGE)
@@ -175,7 +180,6 @@ def get_user_dashboard():
 
     return jsonify(response), 200
 
-
 def get_responder_badge_name(user):
     # Fetch all answers provided by the user
     answers = Answer.objects(answer_user_name=user)
@@ -289,7 +293,6 @@ def get_responder_badge_name(user):
 
     return ANSWERER_BADGES[badge_level]  # Return the badge name based on level
 
-
 def update_reputation_and_badge(dashboard):
     # Define thresholds for levels with their respective multipliers and required staked amounts
     LEVEL_THRESHOLDS = {
@@ -339,7 +342,6 @@ def update_reputation_and_badge(dashboard):
     # Return whether the reputation increased
     return current_level < dashboard.level
 
-
 @dashboard_bp.route('/api/user_history/<user_name>', methods=['GET'])
 def get_user_history(user_name):
     # Fetch the user by user_name
@@ -368,7 +370,6 @@ def get_user_history(user_name):
         })
 
     return jsonify(response), 200
-
 
 @dashboard_bp.route('/api/user_liked_answers/<user_name>/<question_id>', methods=['GET'])
 def get_user_liked_answers(user_name, question_id):
@@ -405,7 +406,7 @@ def get_user_liked_answers(user_name, question_id):
         "liked_answers": response
     }), 200
 
-
+# API - Tasker Select Responder's Answers
 @dashboard_bp.route('/api/select_answers', methods=['POST'])
 def select_answers():
     # Get User Name from JWT Token
@@ -485,7 +486,7 @@ def select_answers():
 
     return jsonify({"message": "Answers selected and payments distributed successfully!"}), 200
 
-# Distribute Payment to Responders (multiplier calculation)
+# Helper Function - Tasker Distribute STC to Responders
 def distribute_payments(user_name, question_id):
     if not user_name or not question_id:
         return jsonify({"error": "User name and question ID are required."}), 400
@@ -572,13 +573,15 @@ def distribute_payments(user_name, question_id):
     wallet.locked_amount -= total_stake_coin
     wallet.save()
 
-    # Update Question state to released
+    # Update Question status to released
+    question.status = QuestionStatus.RELEASED.value
     question.released = True
+    question.save()
 
     return jsonify({"payments": payments, "release_stake": total_stake_coin}), 200
 
 
-# adonaydem
+# API - User's Completed Tasks (got rewarded)
 @dashboard_bp.route('/api/user_history/answered', methods=['GET'])
 def get_answered_history():
     if request.method == 'OPTIONS':
@@ -639,7 +642,7 @@ def get_answered_history():
         answered_history.append(answered_entry)
     return jsonify(answered_history), 200
 
-# adonaydem
+# API - User's Released Tasks (rewarded someone)
 @dashboard_bp.route('/api/user_history/released_tasks', methods=['GET'])
 def get_released_tasks():
     header = request.headers
@@ -666,7 +669,7 @@ def get_released_tasks():
         return jsonify({"error": "User not found"}), 404
 
     # Fetch all released questions asked by the user
-    released_questions = Question.objects(user=user, released=True)
+    released_questions = Question.objects(user=user, status=QuestionStatus.RELEASED.value)
 
     released_tasks = []
 
@@ -707,65 +710,231 @@ def get_released_tasks():
 
     return jsonify(released_tasks), 200
 
-# adonaydem
+# API - Tasker's Active Tasks
 @dashboard_bp.route('/questions/active', methods=['GET'])
 def get_active_questions():
     try:
         header = request.headers
         auth_token = header.get('Authorization')
         if not auth_token:
+            print("Token required")
             return jsonify({"message": "Authorization token is required."}), 401
         auth_token = auth_token.split(' ')[1]
         # Verify the token
         try:
             secret_key = os.getenv('SECRET_KEY')
-            decoded_token = jwt.decode(
-                auth_token, secret_key, algorithms=["HS256"])
+            decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
             user_name = decoded_token.get('user_name')
         except jwt.ExpiredSignatureError:
+            print("Token expire")
             return jsonify({"message": "Token has expired."}), 401
         except jwt.InvalidTokenError:
+            print("Token invalid")
             return jsonify({"message": "Invalid token."}), 401
 
+        # Fetch user object
+        user = User.objects(user_name=user_name).first()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        # Retrieve the query parameter to decide if answers should be included in the response
         include_answers = request.args.get('include_answers')
 
+        # Helper function to calculate the time left for a task to expire
         def format_time_left(visible_until):
-            delta = visible_until - datetime.utcnow()
+            """
+            Calculate the time left as a countdown from 90 days.
+            """
+            now = datetime.now(timezone.utc)  # Ensure `now` is timezone-aware
+            
+            # If visible_until is a string, convert it to a datetime object and make it timezone-aware
+            if isinstance(visible_until, str):
+                visible_until = datetime.fromisoformat(visible_until.replace("Z", "+00:00")).replace(tzinfo=timezone.utc)
+            elif isinstance(visible_until, datetime) and visible_until.tzinfo is None:
+                # If visible_until is naive, assume it's in UTC and make it timezone-aware
+                visible_until = datetime.fromtimestamp(visible_until.timestamp(), tz=timezone.utc)
+
+            # Calculate the time difference
+            delta = visible_until - now
+
+            # Task ahs expired but have more than 3 responders
+            if delta.total_seconds() <= 0:
+                return "Expired, Pending Release"
+
+            # Active tasks
+            days = delta.days
             hours, remainder = divmod(delta.seconds, 3600)
             minutes, _ = divmod(remainder, 60)
-            return f"{hours} hours, {minutes} minutes"
 
-        questions = Question.objects(user_name=user_name, released=False)
+            if days > 0:
+                return f"{days} days, {hours} hours, {minutes} minutes"
+            else:
+                return f"{hours} hours, {minutes} minutes" 
 
-        if include_answers:
-            questions_list = [{
-                "username": question.user_name,
-                "stake": question.question_title,
-                "stakeDetails": question.question_text,
-                "staking_reward": str(question.stake_amount),
-                "time_left": format_time_left(question.visible_until),
-                "answers": [
-                    {
-                        "response": answer.answer,
-                        "username": answer.answer_giver_user_id.user_name
-                    } for answer in Answer.objects(question_id=question.id)
-                ],
-                "question_id": str(question.id)
-            } for question in questions]
-        else:
-            questions_list = [{
-                "username": question.user_name,
-                "stake": question.question_title,
-                "stakeDetails": question.question_text,
-                "staking_reward": str(question.stake_amount),
-                "time_left": format_time_left(question.visible_until),
-                "question_id": str(question.id),
-            } for question in questions]
+        # Function that generates events to be sent over the SSE stream every 60s
+        def generateEvent():
+            while True:
+                questions = Question.objects(
+                    user_name=user_name,
+                    status__in=[QuestionStatus.ACTIVE.value, QuestionStatus.EXPIRED_PENDING_RELEASE.value]
+                )
 
-        return jsonify(questions_list), 200
+                if include_answers:
+                    questions_list = [{
+                        "username": question.user_name,
+                        "stake": question.question_title,
+                        "stakeDetails": question.question_text,
+                        "staking_reward": str(question.stake_amount),
+                        "time_left": format_time_left(question.visible_until),
+                        "expire_time": question.visible_until,
+                        "answers": [
+                            {
+                                "response": answer.answer,
+                                "username": answer.answer_giver_user_id.user_name
+                            } for answer in Answer.objects(question_id=question.id)
+                        ],
+                        "question_id": str(question.id)
+                    } for question in questions]
+                else:
+                    questions_list = [{
+                        "username": question.user_name,
+                        "stake": question.question_title,
+                        "stakeDetails": question.question_text,
+                        "staking_reward": str(question.stake_amount),
+                        "time_left": format_time_left(question.visible_until),
+                        "expire_time": question.visible_until,
+                        "question_id": str(question.id),
+                    } for question in questions]
+
+                # Send the list of questions as a JSON event
+                yield f"data: {json.dumps(questions_list)}\n\n"
+
+                # Wait for 60 seconds before sending the next update
+                sleep(60)
+
+        # Return response as an event stream
+        return Response(generateEvent(), content_type="text/event-stream")
     except Exception as e:
         print(str(e))
         return jsonify({'error': str(e)}), 400
+
+# Helper function - Update Expired Task (locked stake > usable balance)
+def check_expired_tasks(user):
+    # Fetch wallet object
+    wallet = Wallet.objects(user=user).first()
+    if not wallet:
+        wallet = Wallet(
+            user=user,
+            user_name=user.user_name,
+            wallet_addr='',
+            balance=0.0,
+            locked_amount=0.0,
+        )
+        wallet.save()
+
+    # Fetch dashboard object
+    dashboard = UserDashboard.objects(user=user).first()
+    if not dashboard:
+        dashboard = UserDashboard(
+            user=user,
+            user_name=user.user_name,
+            full_name=user.full_name,
+            mobile=user.mobile,
+            email=user.email,
+            level=1,
+            asker_badge_name=STAKING_BADGES[0],
+            responder_badge_name=ANSWERER_BADGES[0],
+            multiplier=1.0,
+            last_updated=datetime.utcnow(),
+            total_staked=0.0,
+            total_received=0.0,
+            total_likes=0  # Ensure this is initialized
+        )
+        dashboard.save()
+
+    # Fetch questions object
+    questions = Question.objects(user=user)
+    expired_stake_details = []
+
+    for question in questions:
+        if not question.visible_until or question.status != QuestionStatus.ACTIVE.value:
+            continue
+
+        # Parse and normalize `visible_until`
+        visible_until = question.visible_until
+        if isinstance(visible_until, str):
+            visible_until = datetime.fromisoformat(visible_until.replace("Z", "+00:00")).astimezone(pytz.utc)
+        elif isinstance(visible_until, datetime) and visible_until.tzinfo is None:
+            visible_until = pytz.utc.localize(visible_until)
+
+        now = datetime.utcnow().replace(tzinfo=pytz.utc)
+        time_left = visible_until - now
+        
+        # Question has expired
+        if time_left.total_seconds() < 0:
+            days_exceeded = abs(time_left.days)
+
+            # Determine the number of users associated with this question
+            associated_users_count = len(question.associated_answers) if hasattr(question, 'associated_answers') else 1
+
+            # Skip transfer logic for questions exceeding 90 days with >= 3 users
+            if days_exceeded < 90 and associated_users_count >= 3:
+                # Update Question status to expired but pending release STC
+                question.status = QuestionStatus.EXPIRED_PENDING_RELEASE.value
+
+                expired_stake_details.append({
+                    "question_id": str(question.id),
+                    "stake_deducted": 0,
+                    "amount_transferred_to_balance": 0,
+                    "days_exceeded": days_exceeded,
+                    "associated_users_count": associated_users_count,
+                    "message": "Stake not transferred. 90 days exceeded, and there are 3 or more associated users."
+                })
+            else:
+                stake_amount = question.stake_amount or 0
+                locked_amount = wallet.locked_amount or 0
+
+                if locked_amount >= stake_amount > 0:
+                    # Deduct the stake_amount from locked_amount
+                    wallet.locked_amount -= stake_amount
+
+                    # Transfer the remaining locked_amount to balance
+                    wallet.balance += stake_amount
+
+                    # Save the updated wallet details
+                    wallet.save()
+
+                    # Update Question status to expired
+                    question.status = QuestionStatus.EXPIRED.value
+
+                    expired_stake_details.append({
+                        "question_id": str(question.id),
+                        "stake_deducted": stake_amount,
+                        "amount_transferred_to_balance": stake_amount,
+                        "days_exceeded": days_exceeded,
+                        "associated_users_count": associated_users_count
+                    })
+            question.save()
+
+# Helper Function - Job schedule to update expired tasks
+def check_and_transfer_stakes():
+    print(f"Running check_expired_tasks at {datetime.now()}...")
+
+    users = User.objects()
+    for user in users:
+        try:
+            # Check if user has an 'id' attribute, if not, skip the user
+            if not hasattr(user, 'id'):
+                print(f"Skipping invalid user: {user}")
+                continue
+
+            check_expired_tasks(user)
+
+        except Exception as e:
+            print(f"Error processing user {user.id if hasattr(user, 'id') else 'unknown'}: {str(e)}")
+
+    print("Completed checking expired tasks.")
+
 
 
 # Update user dashboard data

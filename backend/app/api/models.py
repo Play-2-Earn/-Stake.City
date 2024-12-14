@@ -1,5 +1,6 @@
-from mongoengine import Document, StringField, FloatField, IntField, BooleanField, DateTimeField, ReferenceField, connect, DictField, ListField
-from datetime import datetime
+from enum import Enum
+from mongoengine import Document, StringField, FloatField, IntField, BooleanField, DateTimeField, ReferenceField, connect, DictField, ListField, EmbeddedDocument, EmbeddedDocumentField
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 # Load environment
@@ -61,6 +62,13 @@ class PreviousPasswords(Document):
     old_password = StringField(required=True)
     reset_timestamp = DateTimeField(default=datetime.utcnow)
 
+# Enum for question status
+class QuestionStatus(Enum):
+    ACTIVE = "ACTIVE"
+    RELEASED = "RELEASED"
+    EXPIRED = "EXPIRED"
+    EXPIRED_PENDING_RELEASE = "EXPIRED_PENDING_RELEASE"
+
 # Question Model
 class Question(Document):
     user = ReferenceField(User, required=True)
@@ -72,11 +80,15 @@ class Question(Document):
     coordinates = DictField()
     location_name = StringField()
     timestamp = DateTimeField(default=datetime.utcnow)
-    visible_until = DateTimeField(required=True)
     has_been_extended = BooleanField(default=False)
     verbal_address = StringField()  # New field added
     released = BooleanField(default=False)
-    status=StringField(deafulat="")
+    status = StringField(
+        choices=[status.value for status in QuestionStatus],
+        default=QuestionStatus.ACTIVE.value
+    )
+    visible_until = DateTimeField(default=lambda: datetime.utcnow() + timedelta(days=90), required=True)
+    associated_answers = ListField(ReferenceField('Answer'), default=[])
 
 
 class QuestionExtension(Document):
@@ -136,6 +148,7 @@ class UserDashboard(Document):
     total_likes = IntField(default=0)  # Total likes received on answers given
     points_balance = IntField(default=0)
     is_active = BooleanField(default=True)# Indicates if the user dashboard is active
+    transactions = ListField(StringField())  # List of transaction IDs
 
     def calculate_total_stake(self):
         # Fetch all questions by this user and sum the stake amounts
@@ -236,3 +249,13 @@ class Wallet(Document):
     balance = FloatField(required=True, default=0.0)  # Wallet balance
     locked_amount = FloatField(default=0.0) # Balance that is locked after assigning a task
     updated_at = DateTimeField(default=datetime.utcnow)  # Track last update time
+
+class Transaction(EmbeddedDocument):
+    transaction_id = StringField(required=True, unique=True)  # Unique identifier for the transaction
+    to_redeem = IntField(required=True)                       # Coins redeemed in the transaction
+    timestamp = DateTimeField(default=datetime.utcnow)        # Timestamp of the transaction
+
+class UserStellar(Document):
+    user = ReferenceField(User, required=True, unique=True)   # Links to the User model
+    user_name = StringField(required=True, unique=True)       # Unique identifier for the user
+    transactions = ListField(EmbeddedDocumentField(Transaction))  # Stores all transactions

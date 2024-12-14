@@ -80,7 +80,7 @@ const DashboardGrid = () => {
 
     // Loading State
     if (!profile) return (
-        <div className="flex h-full w-full justify-center items-center text-2xl text-black">
+        <div className="flex h-full w-full justify-center items-center text-2xl text-white bg-gradient-to-b from-[#051B2A] to-[#0A2435]">
             Loading..
         </div>
     );
@@ -477,28 +477,77 @@ const LevelSection = ({ profile }) => {
 const ActiveStakes = ({ isMobile }) => {
     const [activeStakes, setActiveStakes] = useState([]);
 
+    // API - SSE to continously receive updated question/task/stake data
     useEffect(() => {
-        const fetchActiveStakes = async () => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+        let isMounted = true;
+
+        const fetchActiveTasks = async () => {
             try {
-                const token = sessionStorage.getItem('jwtToken');
-                const response = await fetch('http://localhost:5000/questions/active', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch active stakes');
+                const token = sessionStorage.getItem("jwtToken");
+                if (!token) {
+                    console.error("No JWT token found in session storage");
+                    return;
                 }
-                const data = await response.json();
-                setActiveStakes(data);
-            } catch (error) {
-                console.error('Error fetching active stakes:', error);
+
+                const response = await fetch('http://localhost:5000/questions/active', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'text/event-stream'
+                    },
+                    signal,
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch active tasks');
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (isMounted) {
+                    try {
+                        // Read a chunk of data from the stream. 'done' will be true when the stream ends, 'value' contains the data.
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        const tasks = chunk
+                            .split('\n')
+                            .filter(line => line.startsWith('data: '))
+                            .map(line => JSON.parse(line.substring(6)));
+
+                        if (isMounted) {
+                            tasks.forEach(setActiveStakes);
+                        }
+                    } catch (readError) {
+                        if (readError.name !== 'AbortError') {
+                            console.error('Stream reading error:', readError);
+                            break;
+                        }
+                    }
+                }
+            } catch (fetchError) {
+                if (fetchError.name !== 'AbortError') {
+                    console.error('Fetch error:', fetchError);
+                }
             }
         };
 
-        fetchActiveStakes();
+        fetchActiveTasks();
+
+        // Cleanup to prevent memory leaks
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
     }, []);
 
+    // 2025-01-09T15:47:26.698+00:00 Expire Date
+    // 2024-12-10T15:47:26.698+00:00 Expired Date
     return (
         <motion.div
             className="bg-[#0A2435] rounded-2xl p-4 md:p-6 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300"
@@ -517,7 +566,7 @@ const ActiveStakes = ({ isMobile }) => {
 
             <div className="space-y-4">
                 {activeStakes.length > 0 ? (
-                    activeStakes.map(({ stake, stakeDetails, staking_reward, time_left }, index) => (
+                    activeStakes.map(({ stake, stakeDetails, staking_reward, time_left, expire_time }, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, x: -20 }}
@@ -545,7 +594,7 @@ const ActiveStakes = ({ isMobile }) => {
                                 </motion.div>
                                 <div className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-[#45BEA6] rounded-full animate-pulse"></div>
-                                    <span className="text-white/60 text-xs md:text-sm">{time_left}</span>
+                                    <span className="text-white/60 text-xs md:text-sm text-nowrap">{time_left}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -621,7 +670,7 @@ const PlayerHistory = () => {
                 }
             });
             const data = await response.json();
-            
+
             setReleasedStakes(data);
         } catch (error) {
             console.error('Error fetching released stakes:', error);
@@ -700,7 +749,7 @@ const PlayerHistory = () => {
                                     className="bg-[#45BEA6]/20 px-3 py-1 rounded-full"
                                     whileHover={{ scale: 1.1 }}
                                 >
-                                    <span className="text-[#45BEA6]">+{stake.rewardPoints}</span>
+                                    <span className="text-[#45BEA6]">+{(stake.rewardPoints).toLocaleString("en-US")}</span>
                                 </motion.div>
                             </div>
                         </motion.div>
@@ -728,7 +777,7 @@ const PlayerHistory = () => {
                                             className="bg-[#45BEA6]/20 px-3 py-1 rounded-full"
                                             whileHover={{ scale: 1.1 }}
                                         >
-                                            <span className="text-[#45BEA6]">{stake.stakeAmount * 100}</span>
+                                            <span className="text-[#45BEA6]">{(stake.stakeAmount * 100).toLocaleString("en-US")}</span>
                                         </motion.div>
                                     </div>
                                     <div className="flex flex-wrap gap-2">

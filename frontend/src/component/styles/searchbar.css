@@ -1,8 +1,8 @@
 .search-bar-container {
     position: absolute;
-    bottom: 14%;
+    bottom: 16%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, 0px);
     z-index: 15;
     display: flex;
     align-items: center;
@@ -17,14 +17,14 @@
     outline: none;
     margin-right: 10px;
     transition: transform 0.3s ease, opacity 0.3s ease;
-    transform: translateX(100px);
+    transform: translate(-100px, 10px);
     opacity: 0;
     pointer-events: none;
     text-align: center;
   }
   
   .search-bar-visible .search-bar-input {
-    transform: translateX(35px);
+    transform: translate(10px, 0px);
     opacity: 1;
     pointer-events: auto;
   }

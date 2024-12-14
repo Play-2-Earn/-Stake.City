@@ -62,7 +62,7 @@ const WalletInfo = ({ userData }) => {
                 transition={{ duration: 0.1, ease: "easeIn" }}
               >
                 <Popover.Content
-                  className="absolute -top-2 right-[-1.5em] w-fit min-w-[17vw] flex flex-col items-center gap-1 py-3 pb-3 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-100 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
+                  className="absolute -top-2 right-[-1.5em] w-[60vw] 2xl:-w-[17vw] md:w-[23vw] lg:w-[20vw] sm:w-[35vw] flex flex-col items-center gap-1 py-3 pb-3 px-4 rounded-lg bg-[#0D1B2A] bg-opacity-100 border-[#20C997] shadow-[0_0_10px_#20C997] overflow-hidden xs:bg-opacity-100"
                   key="wallet-detail"
                 >
                   {/*  Btn - Close Wallet Details */}

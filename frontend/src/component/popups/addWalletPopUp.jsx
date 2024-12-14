@@ -63,8 +63,8 @@ const AddWalletPopUp = ({ isOpen, setOpenAddWallet, setOpenRedeemCoin }) => {
 
         // Open Redeem Wallet Pop Up after Wallet is Connected
         setOpenRedeemCoin(true);
-      } else if (response.status === 409) {
-        showAlert({ severity: "error", message: "Wallet Address is Connected to Aother Account." });
+      } else {
+        showAlert({ severity: "error", message: "Error Connecting Wallet. Try Again." });
       }
     } catch (error) {
       // Log error

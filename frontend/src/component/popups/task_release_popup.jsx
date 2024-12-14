@@ -98,12 +98,19 @@ const TaskReleasePopUp = ({ isOpen, onClose, displayDetails }) => {
                                     <p className="">{displayDetails[2]}</p>
                                 </div>
                                 <div className=" px-7 py-4 bg-slate-800 w-5/5 mt-3 release_pop_up_scroll">
-                                    <p className="mb-2">Select the best responder from below to release stake.</p>
-                                    <div className=" overflow-y-scroll h-44 release_pop_up_scroll">
-                                        {displayDetails[3].map(({ username, response }, index) => (
-                                            <p onClick={() => finalTaskReleasePopUpOpen(username)} className="mt-3 hover:bg-slate-500 rounded-lg px-3 py-2 cursor-pointe">{index + 1}. {username} : {response} </p>
-                                        ))}
-                                    </div>
+                                    {displayDetails[3].length > 0 ? (
+                                        <>
+                                            <p className="mb-2">Select the best responder from below to release stake.</p>
+                                            <div className=" overflow-y-scroll h-44 release_pop_up_scroll">
+                                                {displayDetails[3].map(({ username, response }, index) => (
+                                                    <p onClick={() => finalTaskReleasePopUpOpen(username)} className="mt-3 hover:bg-slate-500 rounded-lg px-3 py-2 cursor-pointe">{index + 1}. {username} : {response} </p>
+                                                ))}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p className="mb-2">Nos responders yet.</p>
+                                    )}
+
                                 </div>
                             </div>
                         </div>

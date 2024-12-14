@@ -221,7 +221,6 @@ const ReleaseStake = () => {
         }
     ];
 
-
     const [releasePopup, setReleaseTaskPopup] = useState(false)
 
     const [selectedItem, setSelectedItem] = useState(null)
@@ -239,27 +238,74 @@ const ReleaseStake = () => {
     const currentPageItems = stakes.splice(indexOfFirstEle, indexOfLastEle)
     const [activeStakes, setActiveStakes] = useState([]);
 
+    // API - SSE to continously receive updated question/task/stake data
     useEffect(() => {
-        const fetchActiveStakes = async () => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+        let isMounted = true;
+
+        const fetchActiveTasks = async () => {
             try {
-                const token = sessionStorage.getItem('jwtToken');
-                const response = await fetch('http://localhost:5000/questions/active?include_answers=true', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch active stakes');
+                const token = sessionStorage.getItem("jwtToken");
+                if (!token) {
+                    console.error("No JWT token found in session storage");
+                    return;
                 }
-                const data = await response.json();
-                setActiveStakes(data);
-            } catch (error) {
-                console.error('Error fetching active stakes:', error);
+
+                const response = await fetch('http://localhost:5000/questions/active?include_answers=true', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'text/event-stream'
+                    },
+                    signal,
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch active tasks');
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (isMounted) {
+                    try {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        const tasks = chunk
+                            .split('\n')
+                            .filter(line => line.startsWith('data: '))
+                            .map(line => JSON.parse(line.substring(6)));
+
+                        if (isMounted) {
+                            tasks.forEach(setActiveStakes);
+                        }
+                    } catch (readError) {
+                        if (readError.name !== 'AbortError') {
+                            console.error('Stream reading error:', readError);
+                            break;
+                        }
+                    }
+                }
+            } catch (fetchError) {
+                if (fetchError.name !== 'AbortError') {
+                    console.error('Fetch error:', fetchError);
+                }
             }
         };
 
-        fetchActiveStakes();
+        fetchActiveTasks();
+
+        // Cleanup to prevent memory leaks
+        return () => {
+            isMounted = false;
+            controller.abort();
+        }
     }, []);
+
     const nextPage = () => {
         if (currentPageNum === totPages) {
             alert("You are already on the last page.")

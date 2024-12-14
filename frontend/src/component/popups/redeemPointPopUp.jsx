@@ -33,11 +33,14 @@ const RedeeemPointPopUp = ({ isOpen, setOpen }) => {
     e.preventDefault();
 
     // Check if Redeem Amount is Valid
-    if (!redeemAmount) {
+    if (!redeemAmount || redeemAmount <= 0) {
       showAlert({ severity: "error", message: "Please Enter a Valid Amount." });
       return;
     } else if (redeemAmount > pointsBalance) {
       showAlert({ severity: "error", message: "Insufficient Points, Try Another Amount !" });
+      return;
+    } else if (redeemAmount % 100 !== 0) {
+      showAlert({ severity: "error", message: "Amount must be a multiple of 100. Try Another Amount." });
       return;
     }
 
@@ -45,46 +48,37 @@ const RedeeemPointPopUp = ({ isOpen, setOpen }) => {
     setProcessingRedeem(true);
 
     try {
-      // Fetch API - Redeem Points
-      const response = await redeemPoint();
-
-      // Handle API response
-      if (response === 200) {
-        // Alert Success Message 
-        showAlert({ severity: "success", message: `${redeemAmount} Points Redeemed Successfully !` });
-
-        // Update Wallet Balance
-        dispatch(setPointsBalance(Number(pointsBalance) - Number(redeemAmount)));
-      }
-    } catch (error) {
-      console.error("Error redeeming token:", error);
-    } finally {
-      // Close Pop up & Reset
-      onPopUpClose();
-    }
-  }
-
-  // API - Redeem Point Update DB
-  async function redeemPoint() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/update_dashboard`, {
-        method: 'PATCH',
+      // Update in Stellar Wallet
+      const response = await fetch(`${API_BASE_URL}/api/store_coin_redeem`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('jwtToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          pointsBalance: -redeemAmount,
+          to_redeem: Number(redeemAmount),
         })
       })
 
       if (!response.ok) {
-        throw new Error("Error updating points", response.status)
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Unknown error occurred while redeeming coin.");
       }
 
-      return response.status
+      // Handle API response
+      if (response.status === 200) {
+        // Update Wallet Balance
+        dispatch(setPointsBalance(Number(pointsBalance) - Number(redeemAmount)));
+
+        // Alert Success Message 
+        showAlert({ severity: "success", message: `${redeemAmount} Points Redeemed Successfully !` });
+      }
     } catch (error) {
-      console.error('Error Redeem Point', error.message);
+      showAlert({ severity: "error", message: `Error Redeeming Coin. Try Again.` });
+      console.error("Error redeeming token:", error);
+    } finally {
+      // Close Pop up & Reset
+      onPopUpClose();
     }
   }
 

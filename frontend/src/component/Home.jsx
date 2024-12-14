@@ -47,6 +47,7 @@ const Home = () => {
     return (
         <>
             <Header />
+
             <div className="glob_area relative flex justify-center items-center h-80 sm:h-screen mt-10 sm:mt-12">
                 <Globe />
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center px-4">
@@ -168,8 +169,8 @@ const Home = () => {
                     <Link to="/explore" className="w-40 mt-9 px-4 py-2 bg-emerald-400 rounded-3xl shadow-lg shadow-emerald-800 hover:bg-emerald-300 hover:text-grey hover:shadow-sm hover:shadow-emerald-500 transition-shadow transition-2 ease-in-out text-center" >Submit</Link>
                 </div>
             </div>
-            <Footer />
 
+            <Footer />
         </>
     )
 }

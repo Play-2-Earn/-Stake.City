@@ -1,9 +1,10 @@
-from flask import Flask, Blueprint, request, jsonify
+from time import sleep
+from flask import Flask, Blueprint, Response, json, request, jsonify
 from mongoengine import *
 import requests
 import uuid
 from datetime import datetime
-from ..api.models import User, Question,QuestionExtension
+from ..api.models import User, Question, QuestionExtension, QuestionStatus, Wallet
 from datetime import timedelta
 import jwt
 import os
@@ -36,19 +37,40 @@ def pin_location_and_ask_question():
     auth_token = header.get('Authorization')
     if not auth_token:
         return jsonify({"message": "Authorization token is required."}), 401
-    
     auth_token = auth_token.split(' ')[1]
     # Verify the token
     try:
         secret_key = os.getenv('SECRET_KEY')
         decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
-        print(decoded_token, "   token")
         user_name = decoded_token.get('user_name')
     except jwt.ExpiredSignatureError:
         return jsonify({"message": "Token has expired."}), 401
     except jwt.InvalidTokenError:
         return jsonify({"message": "Invalid token."}), 401
 
+    # Fetch user by user_name
+    user = User.objects(user_name=user_name).first()
+    if not user:
+        return jsonify({"message": "User not found."}), 404
+    
+    # Check if the user has an expired task (question) pending to release STC
+    try:
+        expired_tasks = Question.objects(
+            user=user,
+            status=QuestionStatus.EXPIRED_PENDING_RELEASE.value
+        )
+
+        if expired_tasks:
+            task_list = [{"question_id": str(task.id), "question_title": task.question_title} for task in expired_tasks]
+            return jsonify({
+                "message": "You have expired tasks pending to release.",
+                "expired_tasks": task_list
+            }), 400
+    except Exception as e:
+        print(f"Error fetching expired tasks: {e}")
+        return jsonify({"message": "An error occurred while checking tasks."}), 500
+
+    # Fetch request parameters
     question_data = request.json
 
     # Required fields
@@ -58,6 +80,7 @@ def pin_location_and_ask_question():
     longitude = question_data.get('lng')
     stake_amount = question_data.get('stakeAmount')
     verbal_address = question_data.get('verbalAddress')
+
     # Validate the required fields
     if not question or not latitude or not longitude or stake_amount is None:
         return jsonify({"message": "task, latitude, longitude, and stake_amount are required."}), 400
@@ -70,26 +93,8 @@ def pin_location_and_ask_question():
     except ValueError:
         return jsonify({"message": "Invalid stake_amount provided. It must be a number."}), 400
 
-    # Fetch user by user_name
-    user = User.objects(user_name=user_name).first()
-    print(user,"===============")
-    if not user:
-        return jsonify({"message": "User not found."}), 404
-
-    # Check if the user has already posted a question
-    # existing_question = Question.objects(user=user.id).first()  
-    # print(existing_question,"===================")
-    # if existing_question:
-    #     return jsonify({"message": "User has already posted a question."}), 400
-
-
-    # Get location name
-    #location_name = get_location_name(latitude, longitude)
-    #if not location_name:
-    #    return jsonify({"message": "Failed to retrieve location name from coordinates."}), 500
-
-    # Default visibility period is 30 days
-    visible_until = datetime.utcnow() + timedelta(days=30)
+    # Default visibility period is 90 days
+    visible_until = datetime.utcnow() + timedelta(days=90)
 
     # Create the new question
     new_question = Question(
@@ -113,6 +118,12 @@ def pin_location_and_ask_question():
     # Create navigation URL for the map
     navigation_url = f"https://www.google.com/maps?q={latitude},{longitude}"
 
+    # Update Wallet Balance (Balance > Locked STC)
+    wallet = Wallet.objects(user=user).first()
+    wallet.balance -= stake_amount
+    wallet.locked_amount += stake_amount
+    wallet.save()
+
     share_url = f"http://localhost:5173/explore/{str(new_question.id)}" #Needs frontend consultation
     return jsonify({
         "question_id": str(new_question.id),
@@ -130,58 +141,71 @@ def pin_location_and_ask_question():
 # Get All Active Tasks
 @question_bp.route('/api/get_all_tasks', methods=['GET'])
 def get_user_questions():
-    header = request.headers
-    auth_token = header.get('Authorization')
-    if not auth_token:
-        return jsonify({"message": "Authorization token is required."}), 401
-
-    auth_token = auth_token.split(' ')[1]
-    # Verify the token
-    try:
-        secret_key = os.getenv('SECRET_KEY')
-        decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
-        user_name = decoded_token.get('user_name')
-    except jwt.ExpiredSignatureError:
-        return jsonify({"message": "Token has expired."}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"message": "Invalid token."}), 401
-
-    # Fetch the user by user_name
-    user = User.objects(user_name=user_name).first()
-    if not user:
-        return jsonify({"message": "User not found."}), 404
-
-
-    questions = Question.objects(released=False)
-
-    # Format the questions into a list of dictionaries containing the required location data
-    questions_data = []
-
-    for question in questions:
+    try: 
+        header = request.headers
+        auth_token = header.get('Authorization')
+        if not auth_token:
+            return jsonify({"message": "Authorization token is required."}), 401
+        auth_token = auth_token.split(' ')[1]
+        # Verify the token
         try:
-            # Safely handle user reference
-            user_name = question.user.user_name if question.user else "Unknown User"
-            full_name = question.user.full_name if question.user else "Unknown"
+            secret_key = os.getenv('SECRET_KEY')
+            decoded_token = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
+            user_name = decoded_token.get('user_name')
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token has expired."}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Invalid token."}), 401
 
-            question_data = {
-                "question_id": str(question.id),
-                "user_name": user_name,
-                "full_name": full_name,
-                "taskTitle": question.question_title,
-                "taskDescription": question.question_text,
-                "coordinates": question.coordinates,  
-                "stake_amount": question.stake_amount,
-                "location_name": question.location_name,
-                "visible_until": question.visible_until,
-                "share_url": f"http://localhost:5173/explore/{str(question.id)}",
-                "navigation_url": f"https://www.google.com/maps?q={question.coordinates['lat']},{question.coordinates['lng']}",
-            }
-            questions_data.append(question_data)
-        except Exception as e:
-            # Log the error for the specific question
-            print(f"Error processing question {question.id}: {str(e)}")
+        # Fetch user object
+        user = User.objects(user_name=user_name).first()
+        if not user:
+            return jsonify({"message": "User not found."}), 404
 
-    return jsonify(questions_data), 200
+        # Function that generates events to be sent over the SSE stream every 60s
+        def generateEvent():
+            while True:
+                # Fetch question objects
+                questions = Question.objects(status=QuestionStatus.ACTIVE.value)
+
+                # Format the questions into a list of dictionaries containing the required location data
+                questions_data = []
+
+                for question in questions:
+                    try:
+                        # Safely handle user reference
+                        user_name = question.user.user_name if question.user else "Unknown User"
+                        full_name = question.user.full_name if question.user else "Unknown"
+
+                        question_data = {
+                            "question_id": str(question.id),
+                            "user_name": user_name,
+                            "full_name": full_name,
+                            "taskTitle": question.question_title,
+                            "taskDescription": question.question_text,
+                            "coordinates": question.coordinates,  
+                            "stake_amount": question.stake_amount,
+                            "location_name": question.location_name,
+                            "visible_until": question.visible_until,
+                            "share_url": f"http://localhost:5173/explore/{str(question.id)}",
+                            "navigation_url": f"https://www.google.com/maps?q={question.coordinates['lat']},{question.coordinates['lng']}",
+                        }
+                        questions_data.append(question_data)
+                    except Exception as e:
+                        # Log the error for the specific question
+                        print(f"Error processing question {question.id}: {str(e)}")
+                
+                # Send the list of question data as a JSON event
+                yield f"data: {json.dumps(questions_data)}\n\n"
+
+                sleep(60)
+
+        # Return response as an event stream
+        return Response(generateEvent(), content_type="text/event-stream")
+    except Exception as e:
+        print(str(e))
+        return jsonify({'error': str(e)}), 400
+
 
 @question_bp.route('/api/view_question/<question_id>', methods=['GET'])
 def view_question(question_id):
@@ -208,8 +232,8 @@ def view_question(question_id):
         # "updated_at": question.updated_at,
     }), 200
 
-# Route to delete a question
 
+# Route to delete a question
 @question_bp.route('/api/extend_question', methods=['POST'])
 def extend_question():
     data = request.json

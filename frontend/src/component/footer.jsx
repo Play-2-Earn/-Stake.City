@@ -14,6 +14,7 @@ const Footer = () => {
 
             {/* Links section */}
             <div className="mx-6 grid grid-cols-3 gap-8 sm:flex sm:flex-row sm:justify-evenly sm:items-start text-center sm:text-left">
+                {/* Play */}
                 <div className="mb-6 sm:mb-0">
                     <h5 className="border-b mb-3 font-semibold">Play</h5>
                     <ul>
@@ -24,6 +25,8 @@ const Footer = () => {
                         <li><Link to="/">Explore map</Link></li>
                     </ul>
                 </div>
+
+                {/* Economy */}
                 <div className="mb-6 sm:mb-0">
                     <h5 className="border-b mb-3 font-semibold">Economy</h5>
                     <ul>
@@ -32,6 +35,8 @@ const Footer = () => {
                         <li><Link to="/">Tokenaiser</Link></li>
                     </ul>
                 </div>
+
+                {/* Socials */}
                 <div className="mb-6 sm:mb-0">
                     <h5 className="border-b mb-3 font-semibold">Socials</h5>
                     <ul>
@@ -41,13 +46,19 @@ const Footer = () => {
                         <li><Link to="/">Facebook</Link></li>
                     </ul>
                 </div>
+
+                {/* Support */}
                 <div className="mb-6 sm:mb-0">
                     <h5 className="border-b mb-3 font-semibold">Support</h5>
                     <ul>
                         <li><Link to="/">Submit Request</Link></li>
                         <li><Link to="/">Submit Bug</Link></li>
+                        <li><Link to="/">About Us</Link></li>
+                        <li><Link to="/contactus">Contact Us</Link></li>
                     </ul>
                 </div>
+
+                {/* Legal */}
                 <div className="mb-6 sm:mb-0 ">
                     <h5 className="border-b mb-3 font-semibold">Legal</h5>
                     <ul>

@@ -11,7 +11,6 @@ import ZoomOutButton from './ZoomOutButton';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/mapboxmap.css';
-import { Avatar } from '@radix-ui/react-avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLockedAmount, setWalletAddress, setWalletBalance } from '../../Store/Slices/Wallet';
 import useAlert from '../../Hooks/useAlert';
@@ -59,8 +58,6 @@ const MapboxMap = ({ showControls, q_id }) => {
       });
 
       const data = await response.json();
-      console.log(data);
-      
 
       dispatch(setWalletBalance(data.balance));
       dispatch(setLockedAmount(data.locked_amount));
@@ -84,7 +81,6 @@ const MapboxMap = ({ showControls, q_id }) => {
         ...data,
         avatar: '/avatar.svg',
       };
-      console.log(data);
 
       setUserData(data);
       dispatch(setUserName(data.user_name));
@@ -126,39 +122,74 @@ const MapboxMap = ({ showControls, q_id }) => {
         });
     }
 
+    const controller = new AbortController();
+    const signal = controller.signal;
+    let isMounted = true;
+
+    // API - SSE to continously receive all updated question/task/stake data
     const fetchLocations = async () => {
       try {
         const token = sessionStorage.getItem("jwtToken");
-
-        // Check if token exists
         if (!token) {
           console.error("No JWT token found in session storage");
           return;
         }
 
         const response = await fetch(`${API_BASE_URL}/api/get_all_tasks`, {
-          method: "GET",
-          credentials: 'include',
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream'
           },
+          signal,
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+          console.error('Failed to fetch all tasks');
+          return;
         }
 
-        const data = await response.json();
-        console.log(data);
-        setAllTasks(data);
-      } catch (error) {
-        console.error("Error fetching locations:", error);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (isMounted) {
+          try {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            const tasks = lines
+              .filter(line => line.startsWith('data: '))
+              .map(line => JSON.parse(line.substring(6)))
+              .filter(task => task !== null);
+
+            tasks.forEach(setAllTasks);            
+          } catch (readError) {
+            if (readError.name !== 'AbortError') {
+              console.error('Stream reading error:', readError);
+              break;
+            }
+          }
+        }
+      } catch (fetchError) {
+        if (fetchError.name !== 'AbortError') {
+          console.error('Fetch error:', fetchError);
+        }
       }
     };
 
     fetchLocations();
+
+    // Cleanup function to abort the fetch and prevent memory leaks
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   // UI button handling functions
@@ -255,7 +286,7 @@ const MapboxMap = ({ showControls, q_id }) => {
     customMarker.style.backgroundSize = 'cover';
 
     // Declare Marker
-    const marker = new mapboxgl.Marker({element: customMarker, offset: [0, -30]})
+    const marker = new mapboxgl.Marker({ element: customMarker, offset: [0, -30] })
       .setLngLat(coordinates)
       .addTo(mapRef.current);
 
@@ -469,8 +500,12 @@ const MapboxMap = ({ showControls, q_id }) => {
     }
   }, []);
 
-  // Create marker for each task location on Mount
+  // Update marker for each task location on Mount
   useEffect(() => {
+    markers.current.forEach((marker) => {
+      marker.marker.remove();
+    });
+
     allTasks.forEach((task) => {
       createMarker(task.coordinates, task);
     });
@@ -518,8 +553,8 @@ const MapboxMap = ({ showControls, q_id }) => {
       {/* Show the welcome popup when it's open */}
       {welcomePopupOpen ? <WelcomePopup onClose={handleCloseWelcomePopup} /> :
         <>
-          <SearchBar onSearch={handleSearch} />
-          <Taskbar />
+          {/* <SearchBar onSearch={handleSearch} /> */}
+          <Taskbar onSearch={handleSearch} />
           <ZoomOutButton onZoomReset={handleZoomReset} />
           <GamifiedTaskPopup
             task={selectedTask}

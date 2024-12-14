@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify
 from mongoengine import connect
-from ..api.models import User, UserDashboard, Payment, Answer, Question, SelectedAnswer
-from datetime import datetime
 from dotenv import load_dotenv
 import stripe
 import os
@@ -13,8 +11,8 @@ load_dotenv()
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 stripe_public_key = os.getenv('STRIPE_PUBLIC_KEY')
 
-# Create a new Blueprint for payments
-payment_bp = Blueprint('payments', __name__)
+# Create a new Blueprint for Payments
+payment_bp = Blueprint('Payments', __name__)
 
 # Return Stripe Public Key
 @payment_bp.route('/api/get-stripe-public', methods=['GET'])

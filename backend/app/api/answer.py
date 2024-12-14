@@ -66,6 +66,10 @@ def post_answer():
         )
         answer.save()
 
+        # Append answer object to the Question's associated_answers list
+        question.associated_answers.append(answer)
+        question.save()
+
         # Return all answers related to this question_id
         answers = Answer.objects(question_id=question_id)
         answers_data = []

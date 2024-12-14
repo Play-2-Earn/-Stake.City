@@ -74,7 +74,7 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
           : process.env.Deployed_link;
 
       // API - Drop Task
-      const dropTaskRequest = await fetch(`${API_BASE_URL}/api/drop_task`, {
+      const response = await fetch(`${API_BASE_URL}/api/drop_task`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,44 +90,36 @@ const DropTaskPopup = ({ isOpen, onClose, onSuccess, lng, lat, verbalAddress }) 
         }),
       });
 
-      // API - Update Wallet Balance
-      const updateWalletRequest = await fetch(`${API_BASE_URL}/api/update_wallet`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${jwtToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          balance: -stakeAmount,
-          locked_amount: stakeAmount,
-        })
-      })
-
-      const [responseDropTask, responseUpdateWallet] = await Promise.all([dropTaskRequest, updateWalletRequest]);
-
-      if (responseDropTask.ok && responseUpdateWallet.ok) {
+      if (response.ok) {
         // Update Wallet Data
         dispatch(setWalletBalance(Number(walletBalance) - Number(stakeAmount)));
         dispatch(setLockedAmount(Number(lockedAmount) + Number(stakeAmount)));
 
-        const data = await responseDropTask.json();
-        // Call onSuccess with the returned data if necessary
+        const data = await response.json();
+
         onSuccess(data);
-        // Optionally close the popup on success
         onClose();
       } else {
-        // Extract error details from the responses
-        const errorDropTask = await responseDropTask.text();
-        const errorUpdateWallet = await responseUpdateWallet.text();
+        const errorData = await response.json();
 
-        // Log detailed error messages
-        console.error('Error creating task:', responseDropTask.status, errorDropTask);
-        console.error('Error updating wallet:', responseUpdateWallet.status, errorUpdateWallet);
+        if (errorData.expired_tasks) {
+          showAlert({
+            severity: "error",
+            message: errorData.message || "You have expired tasks pending to release."
+          });
+
+          console.log("Expired tasks:", errorData.expired_tasks);
+        } else {
+          showAlert({
+            severity: "error",
+            message: errorData.message || "An unexpected error occurred."
+          });
+        }
       }
 
     } catch (error) {
       showAlert({ severity: "error", message: `Error Creating Task. Try Again` });
-      console.error("Error signing transaction:", error);
+      console.error("Error creating task:", error);
     } finally {
       setIsLoading(false);
     }
