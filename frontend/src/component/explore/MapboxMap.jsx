@@ -5,7 +5,7 @@ import GamifiedTaskPopup from "./starttask";
 import SearchBar from "./searchbar";
 import UserInfo from './UserInfo';
 import WalletInfo from './WalletInfo';
-import WelcomePopup from './Welcomepopup';
+import WelcomePopup from './WelcomePopup';
 import Taskbar from './Taskbar';
 import ZoomOutButton from './ZoomOutButton';
 import mapboxgl from 'mapbox-gl';

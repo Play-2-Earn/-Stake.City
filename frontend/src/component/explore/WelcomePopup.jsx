@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/welcomepopup.css';  // Assuming you will create CSS here
+import '../styles/welcomepopup.css'; 
 
 const WelcomePopup = ({ onClose }) => {
   return (
