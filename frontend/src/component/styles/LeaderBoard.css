@@ -101,11 +101,6 @@
     flex: 4;
     height: 90%;
     margin-top: auto;
-     /* display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center; */
-    /* gap: 0px; */
     overflow-x: hidden; /* Enables horizontal scrolling */
     overflow-y: auto; /* Prevents vertical scrolling */
     white-space: nowrap; /* Ensures content stays on a single line */
@@ -210,7 +205,6 @@
     position: relative;
     z-index: 10 !important;
     gap: 20px;
-
   }
   .containerr > .leaderbody > .coins > .rank{
    align-self: flex-end !important;
@@ -282,3 +276,8 @@
     }
   }
 
+.containerr > nav {
+ width: 96.9% !important;
+ margin-bottom: -2%;
+ margin-top: 3px;
+}

@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useSelector } from "react-redux";
+import '../styles/starttask.css'
 
 const API_BASE_URL =
   process.env.NODE_ENV === "development"
@@ -36,6 +37,8 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
   const [chatHistory, setChatHistory] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [render , setRender] = useState(false)
+  const [report , setReport] = useState({})
 
   useEffect(() => {
     const token = sessionStorage.getItem("jwtToken");
@@ -59,6 +62,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
         .then((data) => {
           if (data.message === "Answers fetched successfully!") {
             setChatHistory({ "answers": data.answers, "question_id": task.question_id });
+            data.answers.map(ans => console.log(ans))
           } else {
             alert(data.message);
           }
@@ -67,40 +71,93 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
           console.error(err);
         });
     }
-  }, [task]);
-  
-  const handleSendMessage = () => {    
-    const token = sessionStorage.getItem("jwtToken");
-
-    if (chatMessage.trim()) {
-      fetch(`${API_BASE_URL}/api/post_answer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          asker_user_id: task.user_name,
-          user_name: task.user_name,
-          question_id: task.question_id,
-          answer: chatMessage,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.message === "Answers fetched successfully!") {
-            setChatHistory({ "answers": data.answers, "question_id": task.question_id });
-            setChatMessage("");
-          } else {
-            alert(data.message);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-
+    return () => {
+      setChatMessage("")
+      setUploadedFiles([])
     }
+  }, [task , render]);
+
+  const sendReport = ( report_reason , target_type,target_id = task.question_id) => {
+    const token = sessionStorage.getItem('jwtToken');
+  const confirmed = window.confirm(`Are you sure you want to report this as ${report_reason.replace("_" , " ").toUpperCase()}?`);
+  if (!confirmed) {
+    setReport({});
+    return;
+  }
+
+  const reportData = {
+    target_type,
+    target_id,
+    report_reason,
   };
+
+  fetch(`http://localhost:5000/api/reports`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(reportData),
+  })
+    .then((response) => {
+      console.log("Raw response:", response); // Log the raw response
+      setRender(prev => !prev)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Response data:", data);
+      alert(data.message)
+      setRender(prev => !prev)
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+  };
+
+    const handleSendMessage = () => {
+      const token = sessionStorage.getItem("jwtToken");
+
+      if (chatMessage.trim() || uploadedFiles.length !==0) {
+        // Create FormData object
+        const formData = new FormData();
+
+    formData.append("question_id", task.question_id);
+    chatMessage.trim() && formData.append("answer_text", chatMessage);
+
+    // Assuming uploadedFiles is an array of file objects
+    uploadedFiles.length !==0 &&
+    uploadedFiles.forEach((file) => {
+      formData.append("uploadedFiles", file); // Append each file
+    });
+
+    // Debugging: Log all form data keys and values
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    // Send the FormData via fetch
+    fetch(`${API_BASE_URL}/api/post_answer`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // Include the Authorization header
+      },
+      body: formData, // Send FormData directly without stringifying
+    })
+      .then((response) => {response.json()
+        response && setRender(prev => !prev)
+      })
+      .then((data) => {
+        console.log("Response:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+             });
+      }
+    };
+
   const handleShare = () => {
     if (task.share_url) {
       navigator.clipboard.writeText(task.share_url).then(() => {
@@ -116,7 +173,6 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
     const files = Array.from(event.target.files);
     setUploadedFiles([...uploadedFiles, ...files]);
   };
-
   const handleLike = (answer_id, index) => {
     fetch(`${API_BASE_URL}/api/like_answer/${answer_id}`, {
       method: "POST",
@@ -270,13 +326,38 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                       <Share2 className="w-5 h-5"
                         onClick={handleShare} />
                     </Button>
-                    <Button
+
+                    <DropdownMenu >
+                            <DropdownMenuTrigger asChild>
+                            <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                      className="text-red-500 hover:text-red-700 transition-colors duration-200 report"
                     >
                       <Flag className="w-5 h-5" />
                     </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="menuu">
+                                <DropdownMenuItem className="item" onClick={() => sendReport("inappropriate_language" , "Question")}>
+                                  Inappropriate Language
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("irrelevant_content", "Question")}>
+                                  Irrelevant Content
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("scam", "Question")}>
+                                  Scam
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("insufficient_detail", "Question")}>
+                                  Insufficient Detail
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("incorrect_information", "Question")}>
+                                  Incorrect Information
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("other", "Question")}>
+                                  Other
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                   </div>
                 </div>
                 <p className="text-gray-700">{task.description}</p>
@@ -314,12 +395,85 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <div>
-                          <span className="font-semibold text-blue-700">
-                            {chat.sender}:{" "}
-                          </span>
-                          <span className="text-gray-700">{chat.message}</span>
-                        </div>
+                        <div style={{ width: "350px" }}>
+  <span className="font-semibold text-blue-700">
+    {chat.sender}:{" "}
+  </span>
+  <br />
+  <p
+    style={{
+      width: "100%",
+      overflowX: "hidden",
+      wordWrap: "break-word", // Ensures long words break into the next line
+      whiteSpace: "normal",  // Allows text to wrap normally
+    }}
+    className="text-gray-700"
+  >
+    {chat.message}
+  </p>
+
+  <div style={{ marginTop: "10px" }}>
+  {chat.uploaded_files?.map((file, index) => {
+    const fileSrc = `${API_BASE_URL}${file.url}`; // Construct the full URL for the file
+    const fileName = file.filename; // Extract the filename directly from the object
+
+    return (
+      fileName.endsWith(".jpg") || fileName.endsWith(".png") ? (
+        <a
+          style={{ width: "100% !important" , cursor:'pointer'}}
+          key={index}
+         href={fileSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src={fileSrc}
+            alt={fileName}
+          style={{ width: "auto", margin: "5px 0" }}
+          />
+        </a>
+      ) : fileName.endsWith(".pdf") ? (
+        <embed
+          key={index}
+          src={fileSrc}
+          type="application/pdf"
+          style={{ width: "100%", height: "500px", margin: "5px 0" }}
+        />
+      ) : fileName.endsWith(".mp4") || fileName.endsWith(".webm") || fileName.endsWith(".ogg") || fileName.endsWith(".mkv") ? (
+        <video
+          key={index}
+          src={fileSrc}
+          controls
+          style={{ width: "100%", height: "auto", margin: "5px 0" }}
+        >
+          Your browser does not support the video tag.
+        </video>
+      ) : fileName.endsWith(".xls") || fileName.endsWith(".xlsx") ? (
+        <a
+          key={index}
+          href={fileSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: "block", margin: "5px 0", color: "green" }}
+        >
+          {fileName} {/* Display the filename */}
+        </a>
+      ) : (
+        <a
+          key={index}
+          href={fileSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: "block", margin: "5px 0", color: "blue" }}
+        >
+          {fileName} {/* Display the filename */}
+        </a>
+      )
+    );
+  })}
+</div>
+</div>
+
                         <div className="flex items-center space-x-2">
                           <Button
                             variant="ghost"
@@ -333,7 +487,7 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                               <span className="ml-1 text-xs">{chat.likes.length}</span>
                             )}
                           </Button>
-                          <DropdownMenu>
+                          <DropdownMenu >
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
@@ -343,10 +497,34 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                                 <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem>Report message</DropdownMenuItem>
-                              <DropdownMenuItem>Copy text</DropdownMenuItem>
-                              <DropdownMenuItem>Pin message</DropdownMenuItem>
+                            <DropdownMenuContent className="menuu">
+                              <DropdownMenu >
+                            <DropdownMenuTrigger asChild>
+                            <DropdownMenuItem className="item">Report message</DropdownMenuItem>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="menuu">
+                            <DropdownMenuItem className="item" onClick={() => sendReport("inappropriate_language" , "Answer",chat.answer_id)}>
+                                  Inappropriate Language
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("irrelevant_content", "Answer",chat.answer_id)}>
+                                  Irrelevant Content
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("scam", "Answer",chat.answer_id)}>
+                                  Scam
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("insufficient_detail", "Answer",chat.answer_id)}>
+                                  Insufficient Detail
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("incorrect_information", "Answer",chat.answer_id)}>
+                                  Incorrect Information
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="item" onClick={() => sendReport("other", "Answer",chat.answer_id)}>
+                                  Other
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                              <DropdownMenuItem className="item">Copy text</DropdownMenuItem>
+                              <DropdownMenuItem className="item">Pin message</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
@@ -368,8 +546,6 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
                 style={{
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
-
-
                   /******  93388eab-c8ad-4299-ac49-83f3befb201a  *******/
                 }}
               ></div>
@@ -382,8 +558,11 @@ const GamifiedTaskPopup = ({ task, isOpen, onClose }) => {
               />
               <label
                 htmlFor="file-upload"
-                className="cursor-pointer relative z-10"
+                className=" cursor-pointer relative z-10 "
               >
+              <p className="absolute z-20 w-6 h-6 bottom-[65%] right-0 bg-red-500 text-white p-1 rounded-full shadow-md text-xs md:text-sm flex align-middle justify-center font-extrabold">
+                {uploadedFiles.length}
+              </p>
                 <Paperclip
                   className="w-6 h-6 md:w-8 md:h-8 text-white hover:text-yellow-300 transition-colors duration-200"
                   style={{ filter: "drop-shadow(2px 2px 0 #2563EB)" }}

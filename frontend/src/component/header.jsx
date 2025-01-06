@@ -27,7 +27,7 @@ const Header = () => {
     }, []);
 
     // Function to toggle the burger menu (open/close)
-    const toggleMenu = () => {        
+    const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
@@ -72,7 +72,7 @@ const Header = () => {
 
     return (
         <>
-            <nav className="py-4 mx-6 flex justify-between items-center">
+            <nav className="py-4 mx-6 flex justify-between items-center ">
                 {/* <ul className="flex flex-row flex-wrap justify-between items-center"> */}
                 <Link
                     to="/"
@@ -112,7 +112,7 @@ const Header = () => {
                 {/* Mobile Menu (only shown when the burger menu is open) */}
                 {isMenuOpen && (
                     <div className="sm:hidden absolute top-24 left-0 w-full text-white flex flex-col items-center space-y-4 py-4 z-50" style={{ backgroundColor: '#172435' }}>
-                       
+
                         {/* If user is logged in, show profile icon */}
                         {isLoggedIn ? (
                             <Link to="/userdashboard" className="text-white px-4 py-2 rounded-md transition ease-in-out duration-200 active:bg-[#34D399] focus:bg-[#34D399]" onClick={toggleMenu}>

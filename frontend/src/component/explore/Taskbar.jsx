@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import {useNavigate} from 'react-router-dom';
 import '../styles/taskbar.css'; // External CSS for styles
 import '../styles/searchbar.css'; // Import the CSS file
 
@@ -44,6 +45,7 @@ const Taskbar = ({ onSearch }) => {
     }
   };
 
+  const navigate = useNavigate()
   return (
     <>
       <div className={`search-bar-container ${isSearchBarVisible ? 'search-bar-visible' : ''}`}>
@@ -72,7 +74,7 @@ const Taskbar = ({ onSearch }) => {
             <img src="/avatar.svg" alt="Avatar" className="avatar-icon" />
           </button>
 
-          <button className="taskbar-btn">
+          <button className="taskbar-btn" onClick={() => navigate('/leaderboard')} >
             <img src="/release-stake-icon.png" alt="Release-Stake" className="taskbar-icon release-stake" />
           </button>
 

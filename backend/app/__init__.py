@@ -46,7 +46,7 @@ def create_app():
     from .api.answer import answer_bp
     from .api.User_dash import dashboard_bp
     from .api.User_dash import check_and_transfer_stakes
-    from .api.Payment import payment_bp
+    from .api.payment import payment_bp
     from .api.LeaderBoard import user_bp
     from .api.Wallet import wallet_bp
     from .api.Stellar import stellar_bp

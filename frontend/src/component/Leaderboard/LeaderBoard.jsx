@@ -57,40 +57,42 @@ const LeaderBoard = () => {
 
 
   return (
-
-    <div className='containerr'>
-      <div className='head'>
-        <div className='west'>
-          <h1>Top Leaderboard</h1>
-          <div className='radio'>
-            <div className={active === 'weekly' ? 'active' : 'item'} onClick={() => setActive('weekly')}>
-              <p>Weekly</p>
-            </div>
-            <div className={active === 'monthly' ? 'active' : 'item'} onClick={() => setActive('monthly')}>
-              <p>Monthly</p>
+    <>
+      <div className='containerr'>
+        <Header />
+        <div className='head'>
+          <div className='west'>
+            <h1>Top Leaderboard</h1>
+            <div className='radio'>
+              <div className={active === 'weekly' ? 'active' : 'item'} onClick={() => setActive('weekly')}>
+                <p>Weekly</p>
+              </div>
+              <div className={active === 'monthly' ? 'active' : 'item'} onClick={() => setActive('monthly')}>
+                <p>Monthly</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className='leaderbody'>
-        <div className='leaderlist'>
-          {load ? <Loader /> : (
-            players.length > 0 ? (
-              players.map((competitor, index) => (
-                <UserRow competitor={competitor} index={index} key={index} />
-              ))
-            ) : (
-              <p style={{ width: '100%', textAlign: 'center' }}>No Players Found</p>
-            )
-          )}
+        <div className='leaderbody'>
+          <div className='leaderlist'>
+            {load ? <Loader /> : (
+              players.length > 0 ? (
+                players.map((competitor, index) => (
+                  <UserRow competitor={competitor} index={index} key={index} />
+                ))
+              ) : (
+                <p style={{ width: '100%', textAlign: 'center' }}>No Players Found</p>
+              )
+            )}
+          </div>
+          <img src='shades.png' alt='shades' className='shades' />
+          <div className='coins'>
+            <button onClick={showRank} style={!isAuthenticated ? hide : showw} className='rank'>Your Rank</button>
+            <img src='coins.png' alt='coins' className='coinsimg' />
+          </div>
         </div>
-        <img src='shades.png' alt='shades' className='shades' />
-        <div className='coins'>
-          <button onClick={showRank} style={!isAuthenticated ? hide : showw} className='rank'>Your Rank</button>
-          <img src='coins.png' alt='coins' className='coinsimg' />
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 

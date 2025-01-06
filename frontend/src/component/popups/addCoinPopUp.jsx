@@ -188,7 +188,7 @@ const countryCurrencyMap = {
   "tk": { code: "tkg", symbol: "K" }, // Tokelau
   "to": { code: "top", symbol: "T$" }, // Tonga
   "tt": { code: "ttd", symbol: "$" }, // Trinidad and Tobago
-  "tn": { code: "tnd", symbol: "د.ت" }, // Tunisia
+  "TN": { code: "TND", symbol: "د.ت" }, // Tunisia
   "tr": { code: "try", symbol: "₺" }, // Turkey
   "tm": { code: "tmr", symbol: "TMT" }, // Turkmenistan
   "tc": { code: "tct", symbol: "TCT" }, // Turks and Caicos Islands
@@ -446,7 +446,7 @@ const AddCoinPopUp = ({ isOpen, setOpen }) => {
                       className='w-[10em] p-2 py-6'
                     />
                   </div>
-                  : // Input Fields 
+                  : // Input Fields
                   <div
                     className="p-4 py-6 bg-[#0D1B2A] bg-opacity-85 relative flex flex-col items-center"
                   >

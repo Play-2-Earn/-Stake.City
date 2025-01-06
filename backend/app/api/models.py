@@ -1,5 +1,5 @@
 from enum import Enum
-from mongoengine import Document, StringField, FloatField, IntField, BooleanField, DateTimeField, ReferenceField, connect, DictField, ListField, EmbeddedDocument, EmbeddedDocumentField
+from mongoengine import Document, StringField, FloatField, IntField, BooleanField, DateTimeField, ReferenceField, connect, DictField, ListField, EmbeddedDocument, EmbeddedDocumentField , GenericReferenceField
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
@@ -81,6 +81,9 @@ class Question(Document):
     location_name = StringField()
     timestamp = DateTimeField(default=datetime.utcnow)
     has_been_extended = BooleanField(default=False)
+    reports = IntField(default=0)  # Count of reports against this answer
+    # List of users who reported this answer
+    reported_by = ListField(ReferenceField('User'), default=[])
     verbal_address = StringField()  # New field added
     released = BooleanField(default=False)
     status = StringField(
@@ -99,9 +102,9 @@ class QuestionExtension(Document):
 
 class Answer(Document):
     question_id = ReferenceField('Question', required=True)
-    asker_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)
+    asker_user_id = ReferenceField('User', reverse_delete_rule=2)
     answer_giver_user_id = ReferenceField('User', required=True, reverse_delete_rule=2)
-    answer = StringField(required=True)
+    answer = StringField()
     likes = ListField(StringField(), default=[])
     # List of usernames who liked the answer
     liked_by = ListField(StringField(), default=[])
@@ -114,12 +117,13 @@ class Answer(Document):
     has_liked_3 = BooleanField(default=False)
     # Timestamp for the answer creation time
     timestamp = DateTimeField(default=datetime.utcnow)
-    answer_user_name = ReferenceField('User', required=True)  # Reference to the User who answered
-    responder_user_name = StringField(required=True)  # The name of the user who responded
-    question_asker_user_name = StringField(required=True)  # The user who asked the question
-    answer_text = StringField(required=True)  # The content of the answer
+    answer_user_name = ReferenceField('User' )  # Reference to the User who answered
+    responder_user_name = StringField()  # The name of the user who responded
+    question_asker_user_name = StringField()  # The user who asked the question
+    answer_text = StringField()  # The content of the answer
     answers_selected = BooleanField(default=False)
     status=StringField(deafulat="")
+    uploaded_files = ListField(StringField(), default=[])  # Save file IDs in the Answer document
 
 
 class History(Document):
@@ -259,3 +263,40 @@ class UserStellar(Document):
     user = ReferenceField(User, required=True, unique=True)   # Links to the User model
     user_name = StringField(required=True, unique=True)       # Unique identifier for the user
     transactions = ListField(EmbeddedDocumentField(Transaction))  # Stores all transactions
+
+class Reports(Document):
+    """
+    Model for storing the reports against questions or answers.
+    """
+    # Reference to the user who reported the question or answer
+    user = ReferenceField(User, required=True)
+
+    # Reference to the reported question or answer
+    target = GenericReferenceField(required=True)  # Can reference any document type (e.g., Answer or Question)
+
+    # Timestamp for the report
+    timestamp = DateTimeField(default=datetime.utcnow)  # When the report was made
+    target_type = StringField(required=True)  # Type of the reported target (e.g., 'question' or 'answer')
+    REASON_CHOICES = (
+    'inappropriate_language',  # Text contains offensive or abusive language
+    'irrelevant_content',      # Text is off-topic or unrelated to the task
+    'scam',                    # Text contains fraudulent or deceptive content
+    'insufficient_detail',     # Text lacks necessary detail or explanation
+    'incorrect_information',   # Text contains false or misleading information
+    'other'                    # Any other issue not listed
+    )
+    report_reason = StringField(required=True, choices=REASON_CHOICES)  # Reason for reporting the text
+
+    STATUS_CHOICES = ('in_check', 'approved', 'rejected')
+    status = StringField(choices=STATUS_CHOICES, default='in_check')  # Default to 'in_check'
+
+    content = StringField()  # Optional field for additional context or details about the report
+    # Meta options for the model
+    meta = {
+        'collection': 'reports',  # Collection name
+        'ordering': ['-timestamp'],  # Default ordering by timestamp
+        'indexes': [
+            'timestamp',  # Index for sorting by timestamp
+            'user',       # Index for querying by user
+        ]
+    }

@@ -145,13 +145,13 @@ def get_user_dashboard():
     total_answers_provided = Answer.objects(answer_giver_user_id=user).count()
 
     # Update reputation score and assign badges accordingly
-    reputation_increased = update_reputation_and_badge(dashboard)    
+    reputation_increased = update_reputation_and_badge(dashboard)
 
     # Log a message or take an action based on the reputation increase
     if reputation_increased:
         print(f"User {dashboard.user_name}'s reputation has increased to level {
               dashboard.level}.")
-    
+
     # Update player badge name based on likes received
     dashboard.responder_badge_name = get_responder_badge_name(user)
 
@@ -186,7 +186,7 @@ def get_responder_badge_name(user):
 
     # Calculate total likes received on the user's answers
     total_likes = sum(len(answer.likes) for answer in answers)
-    
+
     # Determine badge level based on total likes
     if total_likes < 5:
         badge_level = 0  # Level 1 badge
@@ -428,6 +428,7 @@ def select_answers():
 
     # Get Responders List & Quesition ID
     data = request.json
+    print(f"Data: {data}")
     # List of selected responder usernames
     selected_responder_usernames = data.get('selected_responder_usernames')
     # ID of the question for which answers are selected
@@ -445,7 +446,8 @@ def select_answers():
         responder_user_name__in=selected_responder_usernames, question_id=question_id)
 
     # Debugging statement: log the selected answers
-    print(f"Selected Answers Query: {selected_answers}")
+    for answer in selected_answers:
+        print(f"Answers: {answer.to_mongo().to_dict()}")
 
     # Create a set of usernames for quick lookup
     selected_responder_set = set(selected_responder_usernames)
@@ -453,7 +455,7 @@ def select_answers():
     # Create a set of found responder usernames based on selected answers
     found_responder_set = {
         answer.responder_user_name for answer in selected_answers}
-
+    print(f"Missing Responders: {found_responder_set} , {selected_responder_set}")
     # Identify which responders did not provide answers
     missing_responders = selected_responder_set - found_responder_set
 
@@ -679,7 +681,7 @@ def get_released_tasks():
 
         if not selected_answer:
             continue  # Skip if no selected answer found
-        
+
         winners = []
 
         for answer in selected_answer:
@@ -746,7 +748,7 @@ def get_active_questions():
             Calculate the time left as a countdown from 90 days.
             """
             now = datetime.now(timezone.utc)  # Ensure `now` is timezone-aware
-            
+
             # If visible_until is a string, convert it to a datetime object and make it timezone-aware
             if isinstance(visible_until, str):
                 visible_until = datetime.fromisoformat(visible_until.replace("Z", "+00:00")).replace(tzinfo=timezone.utc)
@@ -769,7 +771,7 @@ def get_active_questions():
             if days > 0:
                 return f"{days} days, {hours} hours, {minutes} minutes"
             else:
-                return f"{hours} hours, {minutes} minutes" 
+                return f"{hours} hours, {minutes} minutes"
 
         # Function that generates events to be sent over the SSE stream every 60s
         def generateEvent():
@@ -789,7 +791,7 @@ def get_active_questions():
                         "expire_time": question.visible_until,
                         "answers": [
                             {
-                                "response": answer.answer,
+                                "response": answer.answer_text,
                                 "username": answer.answer_giver_user_id.user_name
                             } for answer in Answer.objects(question_id=question.id)
                         ],
@@ -869,7 +871,7 @@ def check_expired_tasks(user):
 
         now = datetime.utcnow().replace(tzinfo=pytz.utc)
         time_left = visible_until - now
-        
+
         # Question has expired
         if time_left.total_seconds() < 0:
             days_exceeded = abs(time_left.days)
@@ -973,10 +975,9 @@ def update_dashboard_data():
             dashboard.points_balance += points_balance
         except ValueError:
             return jsonify({"error": "Invalid points balance value"}), 400
-    
+
 
     # Save updated dashboard data
     dashboard.save()
-
     # Response
     return jsonify("Success Update Dashboard"), 200
